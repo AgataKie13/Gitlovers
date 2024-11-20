@@ -30,7 +30,7 @@ library("naniar")
 
 n_miss(): Returns NA count in your data frame or column
 
-```{r}
+```{r echo=TRUE}
 n_miss(dane)
 ```
 
@@ -77,4 +77,5 @@ Podsumowanie wykresu: braki w sumie wynoszą 0,9% całkowitych danych i znajduj�
 ```{r}
 vis_miss(dane, cluster=TRUE, sort_miss=TRUE)
 ```
+
 A tutaj uszeregowane względem procentu braków oraz miejscem występowania braków
