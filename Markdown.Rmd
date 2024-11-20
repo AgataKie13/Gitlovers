@@ -79,3 +79,15 @@ vis_miss(dane, cluster=TRUE, sort_miss=TRUE)
 ```
 
 A tutaj uszeregowane względem procentu braków oraz miejscem występowania braków
+
+Co dalej:
+		c. Jakiego typu są braki danych?:
+			i. MCAR - completely at random - nie istnieje żadna zależność
+			ii. MAR - at random - losowe (nie można wskazać wzorca), ale wpływają na wyniki analiz
+			iii. MNR - not random - 
+		Korelacja braków danych (fajka; zaznacz braki danych; korelacja flag z daną zmienną), obrazki, filtry
+		Ifelse coś=NA fajka utwórz nową zmienną (mutate)  "making new variables"
+		Korelacja: corr_mat(dane) ale najpierw flagi
+		nowa zmienna <- ifelse(dochod==NA, 1, 0) 
+		d. Czy coś można wywnioskować z tej korelacji braków danych
+
