@@ -1,0 +1,80 @@
+---
+title: "Projekt Analiza Danych"
+author: "A. Kierznikowicz, J. Dobosz, P. Cebulska"
+date: "2024-11-20"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## 1. Porządkowanie danych
+
+W pierwszej części projektu analizujemy dane źródłowe pod kątem wystąpienia **braków danych**.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r}
+dane <- read.csv("Hipoteczny.csv")
+```
+
+## a) Wstępne rozeznanie
+
+Zainstalowanie pakietu naniar
+
+```{r include=FALSE}
+install.packages("naniar")
+library("naniar")
+```
+
+n_miss(): Returns NA count in your data frame or column
+
+```{r}
+n_miss(dane)
+```
+
+n_complete(): Returns number of complete values
+
+```{r}
+n_complete(dane)
+```
+
+prop_miss() and pct_miss(): Proportion or percentage of values that are NA
+
+```{r}
+prop_miss(dane)
+pct_miss(dane)
+```
+
+miss_var_summary(): A summary table of NA counts in your table uwagi: chciałabym jeszcze kolumnę "variables" przenieść do pierwszej kolumny zamiast cyf 1-12, jako opisy wierszy, ale na razie nie mam pomysłu jak to zrobić
+
+```{r}
+miss <- miss_var_summary(dane)
+```
+
+miss_case_table(): A summary table of NAs by case (observation)
+
+```{r}
+miss_bycase <- miss_case_table(dane)
+miss_bycase <- as.data.frame(miss_bycase)
+```
+
+## b) Dodawanie wykresów
+
+```{r dane, echo=FALSE}
+plot(dane)
+```
+
+Powyższy wykres jest zapewne zbędny ale wygląda bardzo ciekawie
+
+```{r echo=FALSE}
+vis_miss(dane)
+```
+
+Podsumowanie wykresu: braki w sumie wynoszą 0,9% całkowitych danych i znajdują się w kolumnach "LoaAmount" (1% kolumny), "Loan_Amount_Team" (2% kolumny), "Credit_History" (8% kolumny)
+
+```{r}
+vis_miss(dane, cluster=TRUE, sort_miss=TRUE)
+```
+A tutaj uszeregowane względem procentu braków oraz miejscem występowania braków
