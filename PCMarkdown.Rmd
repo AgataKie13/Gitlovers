@@ -82,17 +82,13 @@ Macierz korelacji przedstawia zależności pomiędzy wszystkimi zmiennymi, umoż
 
 Tworzymy macierz korelacji pomiędzy brakującymi zmiennymi, aby ocenić czy występują jakieś zależności w brakach danych.
 
-```{r}
-dane3 <- read.csv("Hipoteczny.csv")
-```
-
 Tworzymy nowe zmienne flagujące braki danych 1 = brak danych, 0 = nie występuje brak danych.
 
 ```{r}
 
 library(dplyr)
 
-dane3 <- dane3 %>%
+dane2 <- dane2 %>%
   mutate(
     flag_LoanAmount = ifelse(is.na(LoanAmount), 1, 0),
     flag_ApplicantIncome = ifelse(is.na(ApplicantIncome), 1, 0),
@@ -111,13 +107,13 @@ dane3 <- dane3 %>%
 Sprawdzamy, czy nowe zmienne zostały dodane.
 
 ```{r}
-head(dane3)
+head(dane2)
 ```
 
 Tworzymy macierz korelacji wybierając jedynie zmienne flagowe, określające istnienie braku danych.
 
 ```{r}
-flags <- dane3 %>%
+flags <- dane2 %>%
   select(flag_LoanAmount, flag_ApplicantIncome, flag_CoapplicantIncome, flag_Credit_History,
          flag_Gender, flag_Married, flag_Dependents, flag_Education, flag_Self_Employed,
          flag_Loan_Amount_Term, flag_Property_Area)
@@ -135,7 +131,7 @@ Otwrzymujemy macierz przedstawiającą korelację pomiędzy brakami danych, co p
 Trzecią macierzą, którą tworzymy jest macierz określająca zależność pomiędzy flagowymi zmiennymi informującymi o tym czy istnieje brak danych, a wszyskimi innymi zmiennymi.
 
 ```{r}
-dane3_numeric <- dane3 %>%
+dane2 <- dane2 %>%
   select(
     LoanAmount, ApplicantIncome, CoapplicantIncome, Loan_Amount_Term, Credit_History,
     Gender, Married, Education, Self_Employed, Property_Area,
@@ -145,12 +141,9 @@ dane3_numeric <- dane3 %>%
   )
 
 
-dane3_numeric <- dane3[, sapply(dane3, is.numeric)]
-str(dane3_numeric)
+corr_dane2_flags <- cor(dane2, use = "complete.obs")
 
-corr_dane3 <- cor(dane3_numeric, use = "complete.obs")
-
-kable(corr_dane3, format = "markdown")
+kable(corr_dane2_flags, format = "markdown")
 ```
 
 ......
