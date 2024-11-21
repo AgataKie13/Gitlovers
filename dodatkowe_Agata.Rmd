@@ -1,0 +1,25 @@
+---
+title: "Agata"
+author: "A. Kierznikowicz"
+date: "2024-11-21"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Rozeznanie w danych
+
+```{r}
+dane <- read.csv("Hipoteczny.csv")
+```
+
+```{r Hipoteczny}
+colnames(dane)
+```
+12 kolumn z danymi
+
+```{r}
+summary(dane)
+```
