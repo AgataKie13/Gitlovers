@@ -1,0 +1,183 @@
+---
+title: "Projekt Analiza Danych"
+author: "A. Kierznikowicz, J. Dobosz, P. Cebulska"
+date: "2024-11-20"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(eval = FALSE, include = FALSE)
+```
+
+## 1. Porządkowanie danych
+
+W pierwszej części projektu analizujemy dane źródłowe pod kątem wystąpienia **braków danych**.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r}
+dane <- read.csv("Hipoteczny.csv")
+```
+
+## a) Wstępne rozeznanie
+
+Zainstalowanie pakietu naniar
+
+```{r include=FALSE}
+install.packages("naniar")
+library("naniar")
+```
+
+n_miss(): Returns NA count in your data frame or column
+
+```{r echo=TRUE}
+n_miss(dane)
+```
+
+n_complete(): Returns number of complete values
+
+```{r}
+n_complete(dane)
+```
+
+prop_miss() and pct_miss(): Proportion or percentage of values that are NA
+
+```{r}
+prop_miss(dane)
+pct_miss(dane)
+```
+
+miss_var_summary(): A summary table of NA counts in your table uwagi: chciałabym jeszcze kolumnę "variables" przenieść do pierwszej kolumny zamiast cyf 1-12, jako opisy wierszy, ale na razie nie mam pomysłu jak to zrobić
+
+```{r}
+miss <- miss_var_summary(dane)
+```
+
+miss_case_table(): A summary table of NAs by case (observation)
+
+```{r}
+miss_bycase <- miss_case_table(dane)
+miss_bycase <- as.data.frame(miss_bycase)
+```
+
+## b) Dodawanie wykresów
+
+```{r dane, echo=FALSE}
+plot(dane)
+```
+
+Powyższy wykres jest zapewne zbędny ale wygląda bardzo ciekawie
+
+```{r echo=FALSE}
+vis_miss(dane)
+```
+
+Podsumowanie wykresu: braki w sumie wynoszą 0,9% całkowitych danych i znajdują się w kolumnach "LoaAmount" (1% kolumny), "Loan_Amount_Team" (2% kolumny), "Credit_History" (8% kolumny)
+
+```{r}
+vis_miss(dane, cluster=TRUE, sort_miss=TRUE)
+```
+
+A tutaj uszeregowane względem procentu braków oraz miejscem występowania braków
+Co dalej: c. Jakiego typu są braki danych?: i. MCAR - completely at random - nie istnieje żadna zależność ii. MAR - at random - losowe (nie można wskazać wzorca), ale wpływają na wyniki analiz iii. MNR - not random - Korelacja braków danych (fajka; zaznacz braki danych; korelacja flag z daną zmienną), obrazki, filtry Ifelse coś=NA fajka utwórz nową zmienną (mutate) "making new variables" Korelacja: corr_mat(dane) ale najpierw flagi nowa zmienna \<- ifelse(dochod==NA, 1, 0) d. Czy coś można wywnioskować z tej korelacji braków danych
+
+
+
+
+## Przekodowanie zmiennych
+
+Na początek zmienne kategoryczne zostają przekodowane na zmienne numeryczne, aby możliwe było zbadanie koralecji pomiędzy poszczególnymi zmiennymi.
+
+```{r}
+dane2 <- dane
+dane2$Gender <- ifelse(dane2$Gender == "Female", 0,
+                       ifelse(dane2$Gender == "Male", 1, NA))
+
+dane2$Married <- ifelse(dane2$Married == "Yes", 1, 
+                              ifelse(dane2$Married == "No", 0, NA))
+
+dane2$Self_Employed <- ifelse(dane2$Self_Employed == "Yes", 1, 
+                                  ifelse(dane2$Self_Employed == "No", 0, NA))
+
+
+dane2$Education <- ifelse(dane2$Education == "Graduate", 1, 
+                              ifelse(dane2$Education == "Not Graduate", 0, NA))
+
+
+dane2$Property_Area <- ifelse(dane2$Property_Area == "Rural", 1, 
+                                ifelse(dane2$Property_Area == "Semiurban", 2, 
+                                  ifelse(dane2$Property_Area == "Urban", 3, NA)))
+                            
+
+
+dane2$Dependents <- ifelse(dane2$Dependents == "3+", 3, 
+                                  ifelse(dane2$Dependents == "2", 2, 
+                                         ifelse(dane2$Dependents == "1", 1,
+                                                ifelse(dane2$Dependents == "0", 0, NA))))
+                           
+dane2 <- dane2[,-1]
+```
+
+**opis przekształceń poszczególnych zmiennych kategorycznych do postaci numerycznej**
+
+**Gender:** Zmienna Gender zawiera informacje o płci, "Male" jest kodowana jako 1, a "Female" 0.
+
+**Married:** Zmienna Married jest przekodowywana, aby 1 oznaczało "Yes",a 0 "No".
+
+**Self_Employed:** Zmienna Self_Employed jest przekodowywana na 1 dla odpowiedzi "Yes", a 0 dla "No".
+
+**Education:** Wartości "Graduate" są kodowane jako 1, a "Not Graduate" jako 0
+
+**Property_Area:** Zmienna Property_Area zawiera trzy kategorie: "Rural", "Semiurban", "Urban". Zostały im przypisane kolejno liczby: 1, 2 i 3.
+
+**Dependents:** Zmienna Dependents zawiera liczbę osób na utrzymaniu, wartość "3+" jest zamieniana na 3, a pozostałe wartości są przekodowane na liczby.
+
+Następnie sprawdzamy jak wyglądają zmienne po przekodowaniu.
+
+```{r}
+head(dane2)
+```
+
+Zmieniamy zmienne po przekodowaniu na numeryczne.
+
+```{r}
+dane2 <- dane2[, sapply(dane2, is.numeric)]
+```
+
+## Macierz korelacji poszczególnych zmiennych
+
+Następnie tworzymy macierz korelacji wszystkich zmiennych.
+
+```{r}
+install.packages("rstatix")
+library(rstatix)
+korelacja <- cor_mat(dane2)
+```
+
+Macierz korelacji przedstawia zależności pomiędzy wszystkimi zmiennymi, umożliwiając wstępną ocenę, które zmienne i w jakim stopniu są ze sobą skorelowane.
+
+## Macierz korelacji braków danych
+
+Tworzymy macierz korelacji pomiędzy brakującymi zmiennymi, aby ocenić czy występują jakieś zależności w brakach danych.
+
+
+```{r}
+
+install.packages("finalfit")
+library(mice)
+dane2_wykres <- dane2 
+names(dane2_wykres) <- c("G","M","D","E","SE","A","C","LA","LAT","CH","PA")
+md.pattern(dane2_wykres)
+install.packages("naniar")
+library(mice)
+gg_miss_fct(dane2, Credit_History)
+gg_miss_upset(dane2)
+install.packages("dplyr")
+library(dplyr)
+filter(dane2, Credit_History == )
+
+``````
+
+......
+
+
