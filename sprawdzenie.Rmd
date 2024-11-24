@@ -1,0 +1,24 @@
+---
+title: "Macierz"
+author: "A. Kierznikowicz"
+date: "2024-11-24"
+output: html_document
+---
+  
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Zapisanie danych
+
+```{r}
+dane <- read.csv("Hipoteczny.csv")
+dane1 <- read.csv("Hipotecznyk.csv")
+```
+
+## Ilość NA
+
+```{r pressure, echo=FALSE}
+sum(is.na(dane))
+sum(is.na(dane1))
+```
