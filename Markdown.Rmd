@@ -172,9 +172,6 @@ install.packages("naniar")
 library(mice)
 gg_miss_fct(dane2, Credit_History)
 gg_miss_upset(dane2)
-install.packages("dplyr")
-library(dplyr)
-filter(dane2, Credit_History == )
 
 ``````
 
