@@ -167,7 +167,6 @@ install.packages("naniar")
 library(naniar)
 gg_miss_fct(dane2, Credit_History)
 gg_miss_upset(dane2)
-?gg_miss_fct
 
 ```
 Niski poziom korelacji pomiędzy zmiennymi oraz analiza powyższych wykresów wskazuje na to, że braki danych można skategoryzować jako MCAR (Całkowicie losowe braki danych).
