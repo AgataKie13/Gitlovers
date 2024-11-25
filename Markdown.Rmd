@@ -78,11 +78,7 @@ Podsumowanie wykresu: braki w sumie wynoszą 0,9% całkowitych danych i znajduj�
 vis_miss(dane, cluster=TRUE, sort_miss=TRUE)
 ```
 
-A tutaj uszeregowane względem procentu braków oraz miejscem występowania braków
-Co dalej: c. Jakiego typu są braki danych?: i. MCAR - completely at random - nie istnieje żadna zależność ii. MAR - at random - losowe (nie można wskazać wzorca), ale wpływają na wyniki analiz iii. MNR - not random - Korelacja braków danych (fajka; zaznacz braki danych; korelacja flag z daną zmienną), obrazki, filtry Ifelse coś=NA fajka utwórz nową zmienną (mutate) "making new variables" Korelacja: corr_mat(dane) ale najpierw flagi nowa zmienna \<- ifelse(dochod==NA, 1, 0) d. Czy coś można wywnioskować z tej korelacji braków danych
-
-
-
+A tutaj uszeregowane względem procentu braków oraz miejscem występowania braków Co dalej: c. Jakiego typu są braki danych?: i. MCAR - completely at random - nie istnieje żadna zależność ii. MAR - at random - losowe (nie można wskazać wzorca), ale wpływają na wyniki analiz iii. MNR - not random - Korelacja braków danych (fajka; zaznacz braki danych; korelacja flag z daną zmienną), obrazki, filtry Ifelse coś=NA fajka utwórz nową zmienną (mutate) "making new variables" Korelacja: corr_mat(dane) ale najpierw flagi nowa zmienna \<- ifelse(dochod==NA, 1, 0) d. Czy coś można wywnioskować z tej korelacji braków danych
 
 ## Przekodowanie zmiennych
 
@@ -160,7 +156,6 @@ Macierz korelacji przedstawia zależności pomiędzy wszystkimi zmiennymi, umoż
 
 Tworzymy macierz korelacji pomiędzy brakującymi zmiennymi, aby ocenić czy występują jakieś zależności w brakach danych.
 
-
 ```{r}
 
 install.packages("finalfit")
@@ -169,12 +164,11 @@ dane2_wykres <- dane2
 names(dane2_wykres) <- c("G","M","D","E","SE","A","C","LA","LAT","CH","PA")
 md.pattern(dane2_wykres)
 install.packages("naniar")
-library(mice)
+library(naniar)
 gg_miss_fct(dane2, Credit_History)
 gg_miss_upset(dane2)
+?gg_miss_fct
 
-``````
-
+```
+Niski poziom korelacji pomiędzy zmiennymi oraz analiza powyższych wykresów wskazuje na to, że braki danych można skategoryzować jako MCAR (Całkowicie losowe braki danych).
 ......
-
-
