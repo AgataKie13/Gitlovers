@@ -157,7 +157,6 @@ Macierz korelacji przedstawia zależności pomiędzy wszystkimi zmiennymi, umoż
 Tworzymy macierz korelacji pomiędzy brakującymi zmiennymi, aby ocenić czy występują jakieś zależności w brakach danych.
 
 ```{r}
-
 install.packages("finalfit")
 library(mice)
 dane2_wykres <- dane2 
@@ -166,8 +165,29 @@ md.pattern(dane2_wykres)
 install.packages("naniar")
 library(naniar)
 gg_miss_fct(dane2, Credit_History)
-gg_miss_upset(dane2)
-
 ```
 Niski poziom korelacji pomiędzy zmiennymi oraz analiza powyższych wykresów wskazuje na to, że braki danych można skategoryzować jako MCAR (Całkowicie losowe braki danych).
+
+
+
+Imputacja brakujących danych metodą hot-deck
+```{r}
+library(hot.deck)
+
+
+dane_hd <- hot.deck(dane2, m = 1, method = "best.cell", cutoff = 10, sdCutoff = 1,
+         optimizeSD = FALSE, optimStep = 0.1, optimStop = 5, weightedAffinity = FALSE,
+         impContinuous = "HD")
+
+data <- dane_hd[["data"]][[1]]
+```
+
 ......
+
+Jeszcze raz sprawdzam, czy zostały zapełnione wszystkie komórki z NA
+```{r}
+install.packages("finalfit")
+library(mice)
+md.pattern(data)
+```
+
