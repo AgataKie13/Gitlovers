@@ -127,7 +127,6 @@ dane2 <- dane2[, sapply(dane2, is.numeric)]
 
 Następnie tworzymy macierz korelacji wszystkich zmiennych.
 
-```{r include=FALSE}
 install.packages("rstatix")
 library(rstatix)
 korelacja <- cor_mat(dane2)
@@ -173,3 +172,24 @@ Hipoteza alternatywna testu: Braki danych nie są MCAR.
 Co więcej, istnienie *12 wzorców braków danych* sugeruje, że różne obserwacje mają różne kombinacje braków.
 
 Ponadto obserwowany niski poziom korelacji pomiędzy zmiennymi oraz analiza powyższych wykresów wskazuje na to, że braki danych należy skategoryzować jako MCAR (Całkowicie losowe braki danych).
+
+
+## 6. Imputacja brakujących danych metodą hot-deck
+```{r}
+library(hot.deck)
+
+dane_hd <- hot.deck(dane2, m = 1, method = "best.cell", cutoff = 10, sdCutoff = 1,
+         optimizeSD = FALSE, optimStep = 0.1, optimStop = 5, weightedAffinity = FALSE,
+         impContinuous = "HD")
+
+data <- dane_hd[["data"]][[1]]
+```
+
+......
+
+Jeszcze raz sprawdzam, czy zostały zapełnione wszystkie komórki z NA
+```{r}
+install.packages("finalfit")
+library(mice)
+md.pattern(data)
+```
