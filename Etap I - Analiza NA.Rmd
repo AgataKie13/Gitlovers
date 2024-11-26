@@ -127,6 +127,7 @@ dane2 <- dane2[, sapply(dane2, is.numeric)]
 
 Następnie tworzymy macierz korelacji wszystkich zmiennych.
 
+```{r}
 install.packages("rstatix")
 library(rstatix)
 korelacja <- cor_mat(dane2)
