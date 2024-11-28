@@ -1,0 +1,215 @@
+---
+title: "Projekt Analiza Danych"
+author: "A. Kierznikowicz, J. Dobosz, P. Cebulska"
+date: "2024-11-20"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(eval = FALSE, include = FALSE)
+```
+
+## 1. Wczytanie danych
+
+```{r}
+dane <- read.csv("Hipoteczny.csv")
+```
+
+## 2. Porządkowanie danych
+
+W pierwszej części projektu analizujemy dane źródłowe pod kątem wystąpienia **braków danych**.
+
+## a) Wstępne rozeznanie
+
+```{r}
+head(dane)
+```
+
+## b) Sprawdzanie braków danych
+
+```{r}
+sum(is.na(dane))
+```
+
+## c) Sprawdzanie czy są puste komórki
+
+```{r}
+sum(dane == "", na.rm = TRUE)
+```
+
+## d) zsumowanie pustych komórek i komórek NA
+
+```{r}
+sum(dane == "" | is.na(dane), na.rm = TRUE)
+```
+
+Z powyższej analizy wynika, że wśród danych źródłowych znjaduje się **40** wartości oznaczonych jako NA oraz **44** zmienne puste. W związu z tym należy przekodować zmienne tak, aby w miejsce pustych komórek pojawiły się wartości NA.
+
+## 3. Przekodowanie zmiennych
+
+Na początek zmienne kategoryczne zostają przekodowane na zmienne numeryczne, aby możliwe było zbadanie koralecji pomiędzy poszczególnymi zmiennymi oraz aby zapobiec pojawianiu się pustych komórek.
+
+```{r}
+dane2 <- dane
+dane2$Gender <- ifelse(dane2$Gender == "Female", 0,
+                       ifelse(dane2$Gender == "Male", 1, NA))
+
+dane2$Married <- ifelse(dane2$Married == "Yes", 1, 
+                              ifelse(dane2$Married == "No", 0, NA))
+
+dane2$Self_Employed <- ifelse(dane2$Self_Employed == "Yes", 1, 
+                                  ifelse(dane2$Self_Employed == "No", 0, NA))
+
+
+dane2$Education <- ifelse(dane2$Education == "Graduate", 1, 
+                              ifelse(dane2$Education == "Not Graduate", 0, NA))
+
+
+dane2$Property_Area <- ifelse(dane2$Property_Area == "Rural", 1, 
+                                ifelse(dane2$Property_Area == "Semiurban", 2, 
+                                  ifelse(dane2$Property_Area == "Urban", 3, NA)))
+                            
+
+
+dane2$Dependents <- ifelse(dane2$Dependents == "3+", 3, 
+                                  ifelse(dane2$Dependents == "2", 2, 
+                                         ifelse(dane2$Dependents == "1", 1,
+                                                ifelse(dane2$Dependents == "0", 0, NA))))
+                           
+dane2 <- dane2[,-1]
+```
+
+**opis przekształceń poszczególnych zmiennych kategorycznych do postaci numerycznej**
+
+**Gender:** Zmienna Gender zawiera informacje o płci, "Male" jest kodowana jako 1, a "Female" 0.
+
+**Married:** Zmienna Married jest przekodowywana, aby 1 oznaczało "Yes",a 0 "No".
+
+**Self_Employed:** Zmienna Self_Employed jest przekodowywana na 1 dla odpowiedzi "Yes", a 0 dla "No".
+
+**Education:** Wartości "Graduate" są kodowane jako 1, a "Not Graduate" jako 0
+
+**Property_Area:** Zmienna Property_Area zawiera trzy kategorie: "Rural", "Semiurban", "Urban". Zostały im przypisane kolejno liczby: 1, 2 i 3.
+
+**Dependents:** Zmienna Dependents zawiera liczbę osób na utrzymaniu, wartość "3+" jest zamieniana na 3, a pozostałe wartości są przekodowane na liczby.
+
+## a) Następnie sprawdzamy jak wyglądają zmienne po przekodowaniu.
+
+```{r}
+head(dane2)
+```
+
+## b) Sprawdzanie czy są puste komórki
+
+```{r}
+sum(dane2 == "", na.rm = TRUE)
+```
+
+W wyniku przekodowania zmiennych zniwelowane zostały puste komórki, które przyjęły teraz postać NA.
+
+## c) Sprawdzanie braków danych
+
+```{r}
+sum(is.na(dane2))
+```
+
+Ostatecznie w danych znajdują się **84** braki danych oznaczone jako NA.
+
+## d) Zmieniamy zmienne po przekodowaniu na numeryczne.
+
+```{r}
+dane2 <- dane2[, sapply(dane2, is.numeric)]
+```
+
+## 4. Analiza braków danych
+
+## a) Macierz korelacji poszczególnych zmiennych
+
+Następnie tworzymy macierz korelacji wszystkich zmiennych.
+
+```{r}
+install.packages("rstatix")
+library(rstatix)
+korelacja <- cor_mat(dane2)
+```
+
+Macierz korelacji przedstawia zależności pomiędzy wszystkimi zmiennymi, umożliwiając wstępną ocenę, które zmienne i w jakim stopniu są ze sobą skorelowane.
+
+## Graficzna analiza braków danych
+
+Tworzymy macierz korelacji pomiędzy brakującymi zmiennymi, aby ocenić czy występują jakieś zależności w brakach danych.
+
+```{r echo=FALSE}
+
+install.packages("finalfit")
+install.packages("naniar")
+library(mice)
+dane2_wykres <- dane2 
+names(dane2_wykres) <- c("G","M","D","E","SE","A","C","LA","LAT","CH","PA")
+md.pattern(dane2_wykres)
+library(naniar)
+gg_miss_fct(dane2, Credit_History)
+gg_miss_upset(dane2)
+vis_miss(dane2, cluster=TRUE, sort_miss=TRUE)
+```
+
+## 5. WNIOSKI
+
+Pierwszy z efektów analizy to **macierz wzorców braków danych**, która przedstawia unikalne wzorce braków danych dla poszczególnych zmiennych. Komórki z brakami są zaznaczone w tabeli na różowo, co pozwala zrozumieć, które zmienne i jak często mają braki. Pierwszy wiersz (289 obserwacji) nie ma żadnych braków danych. Oznacza to, że większość danych jest kompletna. Natomiast W pozostałych wierszach widzimy różne wzorce braków. Na przykład w drugim wierszu 25 obserwacji ma braki w zmiennej CH. Z kolei zmienna CH ma 29 braków.
+
+Drugi wynikiem jest **wykres słupkowy braków danych względem kategorii**, który przedstawia procent braków danych w każdej kolumnie. Następnie sporządzony został **diagram UpSet dla brakujących danych**, który podobnie jak macierz, przedstawia ilość braków w zależności od kolumny.
+
+Na koniec zbudowano **mapę cieni**, która przedstawia procentowy udział braków danych w całości analizowanych danych. W analizowanym przypadku braki danych stanowią 2,1% zmiennych, z czego największy udział mają braki w kolumnie Credit_History (8%), a najmniejszy - LoanAmount (1%).
+
+## Test statystyczny braków danych
+
+```{r}
+mcar_test(dane2)
+```
+
+Hipoteza zerowa testu: Braki danych są MCAR (całkowicie losowe). Hipoteza alternatywna testu: Braki danych nie są MCAR.
+
+*Wartość p (0.9918873) jest znacznie większa niż próg istotności (0.05)*, więc nie ma podstaw do odrzucenia hipotezy zerowej. Oznacza to, że braki w analizowanych danych są całkowicie losowe i nie zależą od wartości innych zmiennych ani samych brakujących danych. Co więcej, istnienie *12 wzorców braków danych* sugeruje, że różne obserwacje mają różne kombinacje braków.
+
+Ponadto obserwowany niski poziom korelacji pomiędzy zmiennymi oraz analiza powyższych wykresów wskazuje na to, że braki danych należy skategoryzować jako MCAR (Całkowicie losowe braki danych).
+
+## 6. Imputacja brakujących danych metodą hot-deck
+
+```{r}
+library(hot.deck)
+
+dane_hd <- hot.deck(dane2, m = 1, method = "best.cell", cutoff = 10, sdCutoff = 1,
+         optimizeSD = FALSE, optimStep = 0.1, optimStop = 5, weightedAffinity = FALSE,
+         impContinuous = "HD")
+
+data <- dane_hd[["data"]][[1]]
+```
+
+......
+
+Jeszcze raz sprawdzam, czy zostały zapełnione wszystkie komórki z NA
+
+```{r}
+install.packages("finalfit")
+library(mice)
+md.pattern(data)
+```
+
+## 7. Imputacja brakujących danych metodą KNN - K-najbliższych sąsiadów
+
+```{r}
+install.packages("VIM")
+library(VIM)
+
+dane_KNN <- kNN(dane2, k = 5, imp_var = FALSE)
+```
+
+Brakujące dane zostały uzupełnione za pomocą 5 najbliższych sąsiednich wartości. (k = 5)
+
+
+Ponowne sprawdzenie czy istnieją braki po imputacji.
+
+```{r}
+print(sapply(dane_KNN, function(x) sum(is.na(x))))
+
+```
