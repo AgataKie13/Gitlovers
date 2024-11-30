@@ -27,13 +27,19 @@ install.packages("finalfit")
 library(mice)
 md.pattern(data)
 
+boxplot(dane2$ApplicantIncome)
+
+numery_kolumn <- seq_along(dane2)
 
 
+lapply(dane2, function(x) {
+  if (is.numeric(x)) {
+    boxplot(x, main=paste("Wykres pudełkowy dla", deparse(substitute(x))))
+  }
+})
 
+library(tidyr)
+dane2_long <- gather(dane2, key="Zmienna", value="Wartosc")
 
-
-
-
-
-
+# Tworzenie wykresu pudełkowego
 
