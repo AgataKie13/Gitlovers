@@ -1,0 +1,29 @@
+---
+title: "Obserwacje odstające"
+author: "A. Kierznikowicz"
+date: "2024-11-30"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+dane <- read.csv("Hipoteczny.csv")
+dane1 <- dane[,-1]
+```
+
+
+1. Obserwacje odstające - jednowymiarowe - Boxplot
+
+```{r}
+boxplot(Sepal.Width ~ Species, data = iris,
+        main = "Boxplot for Sepal Width grouped by Species in iris dataset",
+        xlab = "Species", ylab = "Sepal Width",
+        col = "lightblue", border = "black")
+boxplot(dane1)
+```
+
+
+2. Obserwacje odstające - wielowymiarowe - Scatterplot
