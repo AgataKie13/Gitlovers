@@ -21,7 +21,7 @@ W pierwszej części projektu analizujemy dane źródłowe pod kątem wystąpien
 
 ## a) Wstępne rozeznanie
 
-```{r}
+```{r echo=FALSE}
 head(dane)
 ```
 
@@ -152,30 +152,29 @@ gg_miss_fct(dane2, Credit_History)
 gg_miss_upset(dane2)
 vis_miss(dane2, cluster=TRUE, sort_miss=TRUE)
 ```
+
 ## 5. WNIOSKI
 
-Pierwszy z efektów analizy to **macierz wzorców braków danych**, która przedstawia unikalne wzorce braków danych dla poszczególnych zmiennych. Komórki z brakami są zaznaczone w tabeli na różowo, co pozwala zrozumieć, które zmienne i jak często mają braki. 
-Pierwszy wiersz (289 obserwacji) nie ma żadnych braków danych. Oznacza to, że większość danych jest kompletna. Natomiast W pozostałych wierszach widzimy różne wzorce braków. Na przykład w drugim wierszu 25 obserwacji ma braki w zmiennej CH. Z kolei zmienna CH ma 29 braków.
+Pierwszy z efektów analizy to **macierz wzorców braków danych**, która przedstawia unikalne wzorce braków danych dla poszczególnych zmiennych. Komórki z brakami są zaznaczone w tabeli na różowo, co pozwala zrozumieć, które zmienne i jak często mają braki. Pierwszy wiersz (289 obserwacji) nie ma żadnych braków danych. Oznacza to, że większość danych jest kompletna. Natomiast W pozostałych wierszach widzimy różne wzorce braków. Na przykład w drugim wierszu 25 obserwacji ma braki w zmiennej CH. Z kolei zmienna CH ma 29 braków.
 
-Drugi wynikiem jest **wykres słupkowy braków danych względem kategorii**, który przedstawia procent braków danych w każdej kolumnie.
-Następnie sporządzony został **diagram UpSet dla brakujących danych**, który podobnie jak macierz, przedstawia ilość braków w zależności od kolumny.
+Drugi wynikiem jest **wykres słupkowy braków danych względem kategorii**, który przedstawia procent braków danych w każdej kolumnie. Następnie sporządzony został **diagram UpSet dla brakujących danych**, który podobnie jak macierz, przedstawia ilość braków w zależności od kolumny.
 
 Na koniec zbudowano **mapę cieni**, która przedstawia procentowy udział braków danych w całości analizowanych danych. W analizowanym przypadku braki danych stanowią 2,1% zmiennych, z czego największy udział mają braki w kolumnie Credit_History (8%), a najmniejszy - LoanAmount (1%).
 
 ## Test statystyczny braków danych
+
 ```{r}
 mcar_test(dane2)
 ```
-Hipoteza zerowa testu: Braki danych są MCAR (całkowicie losowe).
-Hipoteza alternatywna testu: Braki danych nie są MCAR.
 
-*Wartość p (0.9918873) jest znacznie większa niż próg istotności (0.05)*, więc nie ma podstaw do odrzucenia hipotezy zerowej. Oznacza to, że braki w analizowanych danych są całkowicie losowe i nie zależą od wartości innych zmiennych ani samych brakujących danych.
-Co więcej, istnienie *12 wzorców braków danych* sugeruje, że różne obserwacje mają różne kombinacje braków.
+Hipoteza zerowa testu: Braki danych są MCAR (całkowicie losowe). Hipoteza alternatywna testu: Braki danych nie są MCAR.
+
+*Wartość p (0.9918873) jest znacznie większa niż próg istotności (0.05)*, więc nie ma podstaw do odrzucenia hipotezy zerowej. Oznacza to, że braki w analizowanych danych są całkowicie losowe i nie zależą od wartości innych zmiennych ani samych brakujących danych. Co więcej, istnienie *12 wzorców braków danych* sugeruje, że różne obserwacje mają różne kombinacje braków.
 
 Ponadto obserwowany niski poziom korelacji pomiędzy zmiennymi oraz analiza powyższych wykresów wskazuje na to, że braki danych należy skategoryzować jako MCAR (Całkowicie losowe braki danych).
 
-
 ## 6. Imputacja brakujących danych metodą hot-deck
+
 ```{r}
 library(hot.deck)
 
@@ -189,6 +188,7 @@ data <- dane_hd[["data"]][[1]]
 ......
 
 Jeszcze raz sprawdzam, czy zostały zapełnione wszystkie komórki z NA
+
 ```{r}
 install.packages("finalfit")
 library(mice)
