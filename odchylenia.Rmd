@@ -27,3 +27,7 @@ boxplot(dane1)
 
 
 2. Obserwacje odstające - wielowymiarowe - Scatterplot
+
+
+
+
