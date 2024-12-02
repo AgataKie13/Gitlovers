@@ -11,23 +11,89 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r}
 dane <- read.csv("Hipoteczny.csv")
-dane1 <- dane[,-1]
+dane2 <- dane
+dane2$Gender <- ifelse(dane2$Gender == "Female", 0,
+                       ifelse(dane2$Gender == "Male", 1, NA))
+
+dane2$Married <- ifelse(dane2$Married == "Yes", 1, 
+                              ifelse(dane2$Married == "No", 0, NA))
+
+dane2$Self_Employed <- ifelse(dane2$Self_Employed == "Yes", 1, 
+                                  ifelse(dane2$Self_Employed == "No", 0, NA))
+
+
+dane2$Education <- ifelse(dane2$Education == "Graduate", 1, 
+                              ifelse(dane2$Education == "Not Graduate", 0, NA))
+
+
+dane2$Property_Area <- ifelse(dane2$Property_Area == "Rural", 1, 
+                                ifelse(dane2$Property_Area == "Semiurban", 2, 
+                                  ifelse(dane2$Property_Area == "Urban", 3, NA)))
+                            
+
+
+dane2$Dependents <- ifelse(dane2$Dependents == "3+", 3, 
+                                  ifelse(dane2$Dependents == "2", 2, 
+                                         ifelse(dane2$Dependents == "1", 1,
+                                                ifelse(dane2$Dependents == "0", 0, NA))))
+                           
+dane2 <- dane2[,-1]
+
 ```
 
 
 1. Obserwacje odstające - jednowymiarowe - Boxplot
 
 ```{r}
-boxplot(Sepal.Width ~ Species, data = iris,
-        main = "Boxplot for Sepal Width grouped by Species in iris dataset",
-        xlab = "Species", ylab = "Sepal Width",
-        col = "lightblue", border = "black")
-boxplot(dane1)
+boxplot(dane2)
 ```
 
 
 2. Obserwacje odstające - wielowymiarowe - Scatterplot
+```{r}
+library(GGally)
+ggcorr(dane2)
 
+x <- dane2$ApplicantIncome
+y <- dane2$CoapplicantIncome
+plot(x, y, main="coś", xlab="AppIncome", ylab="CoappIncome")
 
+a <- dane2$Married
+b <- dane2$Gender
+plot(a, b, main="coś", xlab="Married", ylab="Gender")
+
+c <- dane2$Education
+d <- dane2$CoapplicantIncome
+plot(c, d, main="coś", xlab="Education", ylab="CoappIncome")
+
+e <- dane2$Self_Employed
+f <- dane2$Education
+plot(e, f, main="coś", xlab="self_employed", ylab="education")
+
+g <- dane2$Self_Employed
+h <- dane2$Property_Area
+plot(g, h, main="coś", xlab="self_employed", ylab="property")
+
+i <- dane2$CoapplicantIncome
+j <- dane2$Property_Area
+plot(i, j, main="coś", xlab="CoappIncome", ylab="property")
+```
+3. Metoda kwantyl-kwanty
+
+```{r}
+install.packages("ggplot2")
+library(ggplot2)
+
+set.seed(123)
+data <- rnorm(100)
+
+# Wykres Q-Q
+ggplot(data.frame(sample = dane2), aes(sample = sample)) +
+  stat_qq() + # Q-Q plot
+  stat_qq_line(color = "red", linetype = "dashed") +
+  theme_minimal() +
+  labs(title = "Q-Q Plot", x = "Teoretyczne kwantyle", y = "Empiryczne kwantyle")
+
+```
 
 
