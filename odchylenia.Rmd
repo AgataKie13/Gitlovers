@@ -38,7 +38,7 @@ dane2$Dependents <- ifelse(dane2$Dependents == "3+", 3,
                                                 ifelse(dane2$Dependents == "0", 0, NA))))
                            
 dane2 <- dane2[,-1]
-
+colnames(dane2)
 ```
 
 
@@ -46,6 +46,17 @@ dane2 <- dane2[,-1]
 
 ```{r}
 boxplot(dane2)
+
+par(mfrow = c(2, 2))
+boxplot(dane2$ApplicantIncome, dane2$CoapplicantIncome)
+boxplot(dane2$Loan_Amount_Term, dane2$LoanAmount)
+boxplot(dane2$Gender, dane2$Education, dane2$Credit_History, dane2$Self_Employed)
+boxplot(dane2$Married, dane2$Dependents, dane2$Property_Area)  #bez odchyleń
+```
+```{r}
+outliers <- boxplot.stats(dane2$Gender)$out
+outliers_idx <- which(dane2$Gender %in% outliers)
+dane2[outliers_idx,]
 ```
 
 
@@ -94,6 +105,11 @@ ggplot(data.frame(sample = dane2), aes(sample = sample)) +
   theme_minimal() +
   labs(title = "Q-Q Plot", x = "Teoretyczne kwantyle", y = "Empiryczne kwantyle")
 
+```
+4. Odchylenia Cook'a
+```{r}
+fit = lm( ~ cyl + wt,data=mtcars )
+cooks.distance(fit)
 ```
 
 
