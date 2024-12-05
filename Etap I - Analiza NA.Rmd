@@ -126,11 +126,15 @@ dane2 <- dane2[, sapply(dane2, is.numeric)]
 ## a) Macierz korelacji poszczególnych zmiennych
 
 Następnie tworzymy macierz korelacji wszystkich zmiennych.
-
 ```{r}
 install.packages("rstatix")
 library(rstatix)
 korelacja <- cor_mat(dane2)
+
+install.packages("ggcorrplot")
+library(ggcorrplot)
+ggcorrplot(cor(dane2))
+
 ```
 
 Macierz korelacji przedstawia zależności pomiędzy wszystkimi zmiennymi, umożliwiając wstępną ocenę, które zmienne i w jakim stopniu są ze sobą skorelowane.
@@ -290,7 +294,7 @@ plot(fit4,which=4)
 ```
 
 ## 7. Imputacja brakujących danych
-
+**?? ŚREDNIA, MEDIANA ??**
 ## a) Zastępowanie brakujących danych dominantą
 
 *1. Funkcja licząca dominantę*
@@ -346,6 +350,8 @@ Ponowne sprawdzenie czy istnieją braki po imputacji.
 ```{r}
 sum(is.na(dane_KNN))
 ```
+
+**?DRZEWA LOSOWE?-RPART**
 
 ## c) Wielowymiarowe wypełnianie braków danych przez równania łańcuchowe
 
