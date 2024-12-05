@@ -152,30 +152,145 @@ gg_miss_fct(dane2, Credit_History)
 gg_miss_upset(dane2)
 vis_miss(dane2, cluster=TRUE, sort_miss=TRUE)
 ```
+
 ## 5. WNIOSKI
 
-Pierwszy z efektów analizy to **macierz wzorców braków danych**, która przedstawia unikalne wzorce braków danych dla poszczególnych zmiennych. Komórki z brakami są zaznaczone w tabeli na różowo, co pozwala zrozumieć, które zmienne i jak często mają braki. 
-Pierwszy wiersz (289 obserwacji) nie ma żadnych braków danych. Oznacza to, że większość danych jest kompletna. Natomiast W pozostałych wierszach widzimy różne wzorce braków. Na przykład w drugim wierszu 25 obserwacji ma braki w zmiennej CH. Z kolei zmienna CH ma 29 braków.
+Pierwszy z efektów analizy to **macierz wzorców braków danych**, która przedstawia unikalne wzorce braków danych dla poszczególnych zmiennych. Komórki z brakami są zaznaczone w tabeli na różowo, co pozwala zrozumieć, które zmienne i jak często mają braki. Pierwszy wiersz (289 obserwacji) nie ma żadnych braków danych. Oznacza to, że większość danych jest kompletna. Natomiast W pozostałych wierszach widzimy różne wzorce braków. Na przykład w drugim wierszu 25 obserwacji ma braki w zmiennej CH. Z kolei zmienna CH ma 29 braków.
 
-Drugi wynikiem jest **wykres słupkowy braków danych względem kategorii**, który przedstawia procent braków danych w każdej kolumnie.
-Następnie sporządzony został **diagram UpSet dla brakujących danych**, który podobnie jak macierz, przedstawia ilość braków w zależności od kolumny.
+Drugi wynikiem jest **wykres słupkowy braków danych względem kategorii**, który przedstawia procent braków danych w każdej kolumnie. Następnie sporządzony został **diagram UpSet dla brakujących danych**, który podobnie jak macierz, przedstawia ilość braków w zależności od kolumny.
 
 Na koniec zbudowano **mapę cieni**, która przedstawia procentowy udział braków danych w całości analizowanych danych. W analizowanym przypadku braki danych stanowią 2,1% zmiennych, z czego największy udział mają braki w kolumnie Credit_History (8%), a najmniejszy - LoanAmount (1%).
 
 ## Test statystyczny braków danych
+
 ```{r}
 mcar_test(dane2)
 ```
-Hipoteza zerowa testu: Braki danych są MCAR (całkowicie losowe).
-Hipoteza alternatywna testu: Braki danych nie są MCAR.
 
-*Wartość p (0.9918873) jest znacznie większa niż próg istotności (0.05)*, więc nie ma podstaw do odrzucenia hipotezy zerowej. Oznacza to, że braki w analizowanych danych są całkowicie losowe i nie zależą od wartości innych zmiennych ani samych brakujących danych.
-Co więcej, istnienie *12 wzorców braków danych* sugeruje, że różne obserwacje mają różne kombinacje braków.
+Hipoteza zerowa testu: Braki danych są MCAR (całkowicie losowe). Hipoteza alternatywna testu: Braki danych nie są MCAR.
+
+*Wartość p (0.9918873) jest znacznie większa niż próg istotności (0.05)*, więc nie ma podstaw do odrzucenia hipotezy zerowej. Oznacza to, że braki w analizowanych danych są całkowicie losowe i nie zależą od wartości innych zmiennych ani samych brakujących danych. Co więcej, istnienie *12 wzorców braków danych* sugeruje, że różne obserwacje mają różne kombinacje braków.
 
 Ponadto obserwowany niski poziom korelacji pomiędzy zmiennymi oraz analiza powyższych wykresów wskazuje na to, że braki danych należy skategoryzować jako MCAR (Całkowicie losowe braki danych).
 
+## 6. Analiza odchyleń
 
-## 6. Imputacja brakujących danych metodą hot-deck
+## a) Obserwacje odstające - jednowymiarowe - Boxplot
+
+```{r}
+boxplot(dane2)
+
+par(mfrow = c(2, 2), las = 2)
+boxplot(dane2$ApplicantIncome, dane2$CoapplicantIncome, names = c("AppIncome", "CoappIncome"))
+boxplot(dane2$Loan_Amount_Term, dane2$LoanAmount, names = c("LoanAmountT", "LoanAmount"))
+boxplot(dane2$Gender, dane2$Education, dane2$Credit_History, dane2$Self_Employed, names=c("Płeć", "W", "HK", "SZ"))
+boxplot(dane2$Married, dane2$Dependents, dane2$Property_Area, names=c("SC", "LOU", "Property"))  #bez odchyleń
+
+par(mfrow = c(1, 1))
+plot.new() 
+legend("topleft",      
+       legend = c("AppIncome = Dochód wnioskodawcy", "CoappIncome=Dochód współwnioskodawcy",
+                  "W= Wykształcenie", "HK=Historia Kredytowa", "SZ=Samozatrudnienie",
+                  "SC=Stan cywilny", "LOU=l. osób na utrzymaniu"),
+       cex = 0.9)     
+```
+
+```{r}
+outliers <- boxplot.stats(dane2$Gender)$out
+outliers_idx <- which(dane2$Gender %in% outliers)
+dane2[outliers_idx,]
+dane2[outliers_idx,1:4] <- dane2[outliers_idx,1:4]/10
+summary(dane2)
+```
+
+## b) Obserwacje odstające - wielowymiarowe - Scatterplot
+
+```{r}
+library(GGally)
+ggcorr(dane2)
+
+x <- dane2$ApplicantIncome
+y <- dane2$CoapplicantIncome
+plot(x, y, xlab="AppIncome", ylab="CoappIncome")
+
+a <- dane2$Married
+b <- dane2$Gender
+plot(a, b, xlab="Married", ylab="Gender")
+
+c <- dane2$Education
+d <- dane2$CoapplicantIncome
+plot(c, d, xlab="Education", ylab="CoappIncome")
+
+e <- dane2$Self_Employed
+f <- dane2$Education
+plot(e, f, xlab="self_employed", ylab="education")
+
+g <- dane2$Self_Employed
+h <- dane2$Property_Area
+plot(g, h, xlab="self_employed", ylab="property")
+
+i <- dane2$CoapplicantIncome
+j <- dane2$Property_Area
+plot(i, j, xlab="CoappIncome", ylab="property")
+```
+
+## c) Metoda kwantyl-kwantyl
+
+Stworzono wykresy typu Q-Q dla zmiennych, dla których zidentyfikowano wartości odchylające się podczas analizy wykresami pudełkowymi
+
+```{r}
+qqnorm(dane2$ApplicantIncome, pch = 1, frame = FALSE, main = "Dochód wnioskodawcy")
+qqline(dane2$ApplicantIncome, col = "steelblue", lwd = 2)
+
+qqnorm(dane2$CoapplicantIncome, pch = 1, frame = FALSE, main = "Dochód współwnioskodawcy")
+qqline(dane2$CoapplicantIncome, col = "steelblue", lwd = 2)
+        
+qqnorm(dane2$Loan_Amount_Term, pch = 1, frame = FALSE, main = "Loan_Amount_Term")
+qqline(dane2$Loan_Amount_Term, col = "steelblue", lwd = 2)
+        
+qqnorm(dane2$LoanAmount, pch = 1, frame = FALSE, main = "Kwota kredytu")
+qqline(dane2$LoanAmount, col = "steelblue", lwd = 2)
+
+qqnorm(dane2$Gender, pch=1, frame=FALSE, main= "Płeć")
+qqline(dane2$Gender, col="steelblue", lwd=2)
+
+qqnorm(dane2$Education, pch=1, frame=FALSE, main = "Wykształcenie")
+qqline(dane2$Education, col="steelblue", lwd=2)
+
+qqnorm(dane2$Credit_History, pch=1, frame=FALSE, main = "Historia kredytu")
+qqline(dane2$Credit_History, col="steelblue", lwd=2)
+
+qqnorm(dane2$Self_Employed, pch=1, frame=FALSE, main = "Samozatrudnienie")
+qqline(dane2$Self_Employed, col="steelblue", lwd=2)
+```
+
+## d) Odchylenia Cook'a
+
+```{r}
+library(broom)
+fit = lm(LoanAmount ~ Married,data=dane2)
+cooks.distance(fit)
+plot(fit,which=4)
+
+fit1 = lm(LoanAmount ~ Gender,data=dane2)
+cooks.distance(fit1)
+plot(fit1,which=4)
+
+fit2 = lm(LoanAmount ~ Education,data=dane2)
+cooks.distance(fit2)
+plot(fit2,which=4)
+
+fit3 = lm(LoanAmount ~ ApplicantIncome,data=dane2)
+cooks.distance(fit3)
+plot(fit3,which=4)
+
+fit4 = lm(LoanAmount ~ Loan_Amount_Term,data=dane2)
+cooks.distance(fit4)
+plot(fit4,which=4)
+```
+
+## 7. Imputacja brakujących danych metodą hot-deck
+
 ```{r}
 library(hot.deck)
 
@@ -189,6 +304,7 @@ data <- dane_hd[["data"]][[1]]
 ......
 
 Jeszcze raz sprawdzam, czy zostały zapełnione wszystkie komórki z NA
+
 ```{r}
 install.packages("finalfit")
 library(mice)
