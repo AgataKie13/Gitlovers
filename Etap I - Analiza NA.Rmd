@@ -342,6 +342,7 @@ md.pattern(daned)
 ## b) Imputacja brakujących danych metodą KNN - K-najbliższych sąsiadów
 
 ```{r}
+install.packages("VIM")
 daneKNN <- dane2
 library(VIM)
 
@@ -369,7 +370,7 @@ Gender_imputed <- mice(danem[, c("Gender", "Married", "Dependents", "Education",
                                 "Loan_Amount_Term", "Credit_History", "Property_Area")], 
                        m = 5, method = "pmm")
 
-dane2$Gender <- complete(Gender_imputed)$Gender
+danem$Gender <- complete(Gender_imputed)$Gender
 ```
 
 Zimputowane zostały brakujące obserwacje w zmiennej **Gender**, a następnie uzupełniono brakujące wartości w zbiorze danych.
@@ -384,7 +385,7 @@ Dependents_imputed <- mice(danem[, c("Dependents", "Gender", "Married", "Educati
                                     "Loan_Amount_Term", "Credit_History", "Property_Area")], 
                            m = 5, method = "pmm")
 
-dane2$Dependents <- complete(Dependents_imputed)$Dependents
+danem$Dependents <- complete(Dependents_imputed)$Dependents
 ```
 
 **zmienna Self_Employed**
@@ -395,7 +396,7 @@ Self_Employed_imputed <- mice(danem[, c("Self_Employed", "Gender", "Married", "D
                                        "LoanAmount", "Loan_Amount_Term", "Credit_History", "Property_Area")], 
                               m = 5, method = "pmm")
 
-dane2$Self_Employed <- complete(Self_Employed_imputed)$Self_Employed
+danem$Self_Employed <- complete(Self_Employed_imputed)$Self_Employed
 ```
 
 **zmienna LoanAmount**
@@ -406,7 +407,7 @@ LoanAmount_imputed <- mice(danem[, c("LoanAmount", "Gender", "Married", "Depende
                                     "CoapplicantIncome", "Loan_Amount_Term", "Credit_History", "Property_Area")], 
                            m = 5, method = "pmm")
 
-dane2$LoanAmount <- complete(LoanAmount_imputed)$LoanAmount
+danem$LoanAmount <- complete(LoanAmount_imputed)$LoanAmount
 ```
 
 **zmienna Loan_Amount_Term**
@@ -417,7 +418,7 @@ Loan_Amount_Term_imputed <- mice(danem[, c("Loan_Amount_Term", "Gender", "Marrie
                                           "CoapplicantIncome", "LoanAmount", "Credit_History", "Property_Area")], 
                                  m = 5, method = "pmm")
 
-dane2$Loan_Amount_Term <- complete(Loan_Amount_Term_imputed)$Loan_Amount_Term
+danem$Loan_Amount_Term <- complete(Loan_Amount_Term_imputed)$Loan_Amount_Term
 ```
 
 **zmienna Credit_History**
@@ -428,7 +429,7 @@ Credit_History_imputed <- mice(danem[, c("Credit_History", "Gender", "Married", 
                                         "CoapplicantIncome", "LoanAmount", "Loan_Amount_Term", "Property_Area")], 
                                m = 5, method = "pmm")
 
-dane2$Credit_History <- complete(Credit_History_imputed)$Credit_History
+danem$Credit_History <- complete(Credit_History_imputed)$Credit_History
 ```
 
 Proces został wykonany dla każdej zmiennej z brakami (Gender, Dependents, Self_Employed, LoanAmount, Loan_Amount_Term, Credit_History) i polegał na imputacji tych braków w konkretnej zmiennej na podstawie podobnych obserwacji z danych.
