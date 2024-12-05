@@ -313,7 +313,8 @@ dominanta <- function(x) {
 *2. Zastosowanie funkcji na wszystkich kolumnach*
 
 ```{r}
-dominanty_zmiennych <- sapply(dane2, dominanta)
+daned <- dane2
+dominanty_zmiennych <- sapply(daned, dominanta)
 dominanty <- data.frame(dominanty_zmiennych)
 dominanty <- t(dominanty)
 dominanty <- as.data.frame(lapply(dominanty, as.factor))
@@ -323,8 +324,8 @@ print(dominant_values)
 *3. Zastąpienie braków danych dominantą*
 
 ```{r}
-for (col in colnames(dane2)) {
-  dane2[[col]][is.na(dane2[[col]])] <- dominant_values[col]
+for (col in colnames(daned)) {
+  daned[[col]][is.na(daned[[col]])] <- dominant_values[col]
 }
 ```
 
@@ -332,16 +333,17 @@ for (col in colnames(dane2)) {
 
 ```{r}
 library(mice)
-md.pattern(dane2)
+md.pattern(daned)
 ```
 
 ## b) Imputacja brakujących danych metodą KNN - K-najbliższych sąsiadów
 
 ```{r}
+daneKNN <- dane2
 install.packages("VIM")
 library(VIM)
 
-dane_KNN <- kNN(dane2, k = 5, imp_var = FALSE)
+dane_KNN <- kNN(daneKNN, k = 5, imp_var = FALSE)
 ```
 
 Brakujące dane zostały uzupełnione za pomocą 5 najbliższych sąsiednich wartości. (k = 5)
@@ -359,8 +361,8 @@ Do imputacji braków w danych użyto pakietu **mice** (Multivariate Imputation b
 
 ```{r}
 library(mice)
-
-Gender_imputed <- mice(dane2[, c("Gender", "Married", "Dependents", "Education", "Self_Employed", 
+danem <- dane2
+Gender_imputed <- mice(danem[, c("Gender", "Married", "Dependents", "Education", "Self_Employed", 
                                 "ApplicantIncome", "CoapplicantIncome", "LoanAmount", 
                                 "Loan_Amount_Term", "Credit_History", "Property_Area")], 
                        m = 5, method = "pmm")
@@ -375,7 +377,7 @@ Proces ten został powtórzony dla pozostałych zmiennych
 **zmienna Dependents**
 
 ```{r}
-Dependents_imputed <- mice(dane2[, c("Dependents", "Gender", "Married", "Education", "Self_Employed", 
+Dependents_imputed <- mice(danem[, c("Dependents", "Gender", "Married", "Education", "Self_Employed", 
                                     "ApplicantIncome", "CoapplicantIncome", "LoanAmount", 
                                     "Loan_Amount_Term", "Credit_History", "Property_Area")], 
                            m = 5, method = "pmm")
@@ -386,7 +388,7 @@ dane2$Dependents <- complete(Dependents_imputed)$Dependents
 **zmienna Self_Employed**
 
 ```{r}
-Self_Employed_imputed <- mice(dane2[, c("Self_Employed", "Gender", "Married", "Dependents", 
+Self_Employed_imputed <- mice(danem[, c("Self_Employed", "Gender", "Married", "Dependents", 
                                        "Education", "ApplicantIncome", "CoapplicantIncome", 
                                        "LoanAmount", "Loan_Amount_Term", "Credit_History", "Property_Area")], 
                               m = 5, method = "pmm")
@@ -397,7 +399,7 @@ dane2$Self_Employed <- complete(Self_Employed_imputed)$Self_Employed
 **zmienna LoanAmount**
 
 ```{r}
-LoanAmount_imputed <- mice(dane2[, c("LoanAmount", "Gender", "Married", "Dependents", 
+LoanAmount_imputed <- mice(danem[, c("LoanAmount", "Gender", "Married", "Dependents", 
                                     "Education", "Self_Employed", "ApplicantIncome", 
                                     "CoapplicantIncome", "Loan_Amount_Term", "Credit_History", "Property_Area")], 
                            m = 5, method = "pmm")
@@ -408,7 +410,7 @@ dane2$LoanAmount <- complete(LoanAmount_imputed)$LoanAmount
 **zmienna Loan_Amount_Term**
 
 ```{r}
-Loan_Amount_Term_imputed <- mice(dane2[, c("Loan_Amount_Term", "Gender", "Married", "Dependents", 
+Loan_Amount_Term_imputed <- mice(danem[, c("Loan_Amount_Term", "Gender", "Married", "Dependents", 
                                           "Education", "Self_Employed", "ApplicantIncome", 
                                           "CoapplicantIncome", "LoanAmount", "Credit_History", "Property_Area")], 
                                  m = 5, method = "pmm")
@@ -419,7 +421,7 @@ dane2$Loan_Amount_Term <- complete(Loan_Amount_Term_imputed)$Loan_Amount_Term
 **zmienna Credit_History**
 
 ```{r}
-Credit_History_imputed <- mice(dane2[, c("Credit_History", "Gender", "Married", "Dependents", 
+Credit_History_imputed <- mice(danem[, c("Credit_History", "Gender", "Married", "Dependents", 
                                         "Education", "Self_Employed", "ApplicantIncome", 
                                         "CoapplicantIncome", "LoanAmount", "Loan_Amount_Term", "Property_Area")], 
                                m = 5, method = "pmm")
@@ -432,7 +434,7 @@ Proces został wykonany dla każdej zmiennej z brakami (Gender, Dependents, Self
 Sprawdzenie czy wszystkie braki zostały uzupełnione.
 
 ```{r}
-sum(is.na(dane2))
+sum(is.na(danem))
 ```
 
 ## d) Imputacja brakujących danych metodą hot-deck
@@ -454,3 +456,5 @@ install.packages("finalfit")
 library(mice)
 md.pattern(data)
 ```
+
+**?ODCHYLENIA PO IMPUTACJI?**
