@@ -341,5 +341,101 @@ library(mice)
 md.pattern(data)
 ```
 
+## c) Imputacja brakujących danych metodą KNN - K-najbliższych sąsiadów
 
+```{r}
+install.packages("VIM")
+library(VIM)
+
+dane_KNN <- kNN(dane2, k = 5, imp_var = FALSE)
+```
+
+Brakujące dane zostały uzupełnione za pomocą 5 najbliższych sąsiednich wartości. (k = 5)
+
+Ponowne sprawdzenie czy istnieją braki po imputacji.
+
+```{r}
+sum(is.na(dane_KNN))
+```
+## d). Wielowymiarowe wypełnianie braków danych przez równania łańcuchowe
+
+Do imputacji braków w danych użyto pakietu **mice** (Multivariate Imputation by Chained Equations), stosując metodę **pmm** (Predictive Mean Matching), która wypełniała braki na podstawie podobnych obserwacji z danych.
+
+```{r}
+library(mice)
+
+Gender_imputed <- mice(dane2[, c("Gender", "Married", "Dependents", "Education", "Self_Employed", 
+                                "ApplicantIncome", "CoapplicantIncome", "LoanAmount", 
+                                "Loan_Amount_Term", "Credit_History", "Property_Area")], 
+                       m = 5, method = "pmm")
+
+dane2$Gender <- complete(Gender_imputed)$Gender
+```
+
+Zimputowane zostały brakujące obserwacje w zmiennej **Gender**, a następnie uzupełniono brakujące wartości w zbiorze danych.
+
+Proces ten został powtórzony dla pozostałych zmiennych
+
+**zmienna Dependents**
+
+```{r}
+Dependents_imputed <- mice(dane2[, c("Dependents", "Gender", "Married", "Education", "Self_Employed", 
+                                    "ApplicantIncome", "CoapplicantIncome", "LoanAmount", 
+                                    "Loan_Amount_Term", "Credit_History", "Property_Area")], 
+                           m = 5, method = "pmm")
+
+dane2$Dependents <- complete(Dependents_imputed)$Dependents
+```
+
+**zmienna Self_Employed**
+
+```{r}
+Self_Employed_imputed <- mice(dane2[, c("Self_Employed", "Gender", "Married", "Dependents", 
+                                       "Education", "ApplicantIncome", "CoapplicantIncome", 
+                                       "LoanAmount", "Loan_Amount_Term", "Credit_History", "Property_Area")], 
+                              m = 5, method = "pmm")
+
+dane2$Self_Employed <- complete(Self_Employed_imputed)$Self_Employed
+```
+
+**zmienna LoanAmount**
+
+```{r}
+LoanAmount_imputed <- mice(dane2[, c("LoanAmount", "Gender", "Married", "Dependents", 
+                                    "Education", "Self_Employed", "ApplicantIncome", 
+                                    "CoapplicantIncome", "Loan_Amount_Term", "Credit_History", "Property_Area")], 
+                           m = 5, method = "pmm")
+
+dane2$LoanAmount <- complete(LoanAmount_imputed)$LoanAmount
+```
+
+**zmienna Loan_Amount_Term**
+
+```{r}
+Loan_Amount_Term_imputed <- mice(dane2[, c("Loan_Amount_Term", "Gender", "Married", "Dependents", 
+                                          "Education", "Self_Employed", "ApplicantIncome", 
+                                          "CoapplicantIncome", "LoanAmount", "Credit_History", "Property_Area")], 
+                                 m = 5, method = "pmm")
+
+dane2$Loan_Amount_Term <- complete(Loan_Amount_Term_imputed)$Loan_Amount_Term
+```
+
+**zmienna Credit_History**
+
+```{r}
+Credit_History_imputed <- mice(dane2[, c("Credit_History", "Gender", "Married", "Dependents", 
+                                        "Education", "Self_Employed", "ApplicantIncome", 
+                                        "CoapplicantIncome", "LoanAmount", "Loan_Amount_Term", "Property_Area")], 
+                               m = 5, method = "pmm")
+
+dane2$Credit_History <- complete(Credit_History_imputed)$Credit_History
+```
+
+Proces został wykonany dla każdej zmiennej z brakami (Gender, Dependents, Self_Employed, LoanAmount, Loan_Amount_Term, Credit_History) i polegał na imputacji tych braków w konkretnej zmiennej na podstawie podobnych obserwacji z danych.
+
+Sprawdzenie czy wszystkie braki zostały uzupełnione.
+
+```{r}
+sum(is.na(dane2))
+```
 
