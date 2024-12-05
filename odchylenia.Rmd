@@ -41,7 +41,6 @@ dane2 <- dane2[,-1]
 colnames(dane2)
 ```
 
-
 1. Obserwacje odstające - jednowymiarowe - Boxplot
 
 ```{r}
