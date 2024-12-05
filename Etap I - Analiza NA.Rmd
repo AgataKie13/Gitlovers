@@ -308,6 +308,7 @@ dominanta <- function(x) {
     return(names(sort(table(x), decreasing = TRUE)[1]))
   }
 }
+library(tidyr)
 ```
 
 *2. Zastosowanie funkcji na wszystkich kolumnach*
@@ -318,14 +319,16 @@ dominanty_zmiennych <- sapply(daned, dominanta)
 dominanty <- data.frame(dominanty_zmiennych)
 dominanty <- t(dominanty)
 dominanty <- as.data.frame(lapply(dominanty, as.factor))
-print(dominant_values)
+colnames(dominanty) <- colnames(dane2)
+print(dominanty)
 ```
 
 *3. Zastąpienie braków danych dominantą*
 
 ```{r}
+dominanty <- lapply(dominanty, as.numeric)
 for (col in colnames(daned)) {
-  daned[[col]][is.na(daned[[col]])] <- dominant_values[col]
+  daned[[col]][is.na(daned[[col]])] <- dominanty [[col]]
 }
 ```
 
@@ -340,7 +343,6 @@ md.pattern(daned)
 
 ```{r}
 daneKNN <- dane2
-install.packages("VIM")
 library(VIM)
 
 dane_KNN <- kNN(daneKNN, k = 5, imp_var = FALSE)
@@ -446,7 +448,7 @@ dane_hd <- hot.deck(dane2, m = 1, method = "best.cell", cutoff = 10, sdCutoff = 
          optimizeSD = FALSE, optimStep = 0.1, optimStop = 5, weightedAffinity = FALSE,
          impContinuous = "HD")
 
-data <- dane_hd[["data"]][[1]]
+dane_hd <- dane_hd[["data"]][[1]]
 ```
 
 ...... Jeszcze raz sprawdzam, czy zostały zapełnione wszystkie komórki z NA
@@ -454,7 +456,64 @@ data <- dane_hd[["data"]][[1]]
 ```{r}
 install.packages("finalfit")
 library(mice)
-md.pattern(data)
+md.pattern(dane_hd)
 ```
 
-**?ODCHYLENIA PO IMPUTACJI?**
+**PORÓWNANIE STATYSTYK PRZED I PO UŻYCIU RÓŻNYCH METOD IMPUTACJI DANYCH**
+
+```{r}
+srednia <- (sapply(dane2,mean, na.rm = TRUE))
+mediana <- (sapply(dane2,median, na.rm = TRUE))
+minimum <- (sapply(dane2,min, na.rm = TRUE))
+maximum <- (sapply(dane2,max, na.rm = TRUE))
+kwantyl1 <- (sapply(dane2,quantile, na.rm = TRUE, probs = 0.25))
+kwantyl3 <- (sapply(dane2,quantile, na.rm = TRUE, probs = 0.75))
+
+
+sredniahd <- (sapply(dane_hd,mean, na.rm = TRUE))
+medianahd <- (sapply(dane_hd,median, na.rm = TRUE))
+minimumhd <- (sapply(dane_hd,min, na.rm = TRUE))
+maximumhd <- (sapply(dane_hd,max, na.rm = TRUE))
+kwantyl1hd <- (sapply(dane_hd,quantile, na.rm = TRUE, probs = 0.25))
+kwantyl3hd <- (sapply(dane_hd,quantile, na.rm = TRUE, probs = 0.75))
+
+
+sredniaKNN <- (sapply(dane_KNN,mean, na.rm = TRUE))
+medianaKNN <- (sapply(dane_KNN,median, na.rm = TRUE))
+minimumKNN <- (sapply(dane_KNN,min, na.rm = TRUE))
+maximumKNN <- (sapply(dane_KNN,max, na.rm = TRUE))
+kwantyl1KNN <- (sapply(dane_KNN,quantile, na.rm = TRUE, probs = 0.25))
+kwantyl3KNN <- (sapply(dane_KNN,quantile, na.rm = TRUE, probs = 0.75))
+
+
+sredniam <- (sapply(danem,mean, na.rm = TRUE))
+medianam <- (sapply(danem,median, na.rm = TRUE))
+minimumm <- (sapply(danem,min, na.rm = TRUE))
+maximumm <- (sapply(danem,max, na.rm = TRUE))
+kwantyl1m <- (sapply(danem,quantile, na.rm = TRUE, probs = 0.25))
+kwantyl3m <- (sapply(danem,quantile, na.rm = TRUE, probs = 0.75))
+
+
+sredniad <- (sapply(daned,mean, na.rm = TRUE))
+medianad <- (sapply(daned,median, na.rm = TRUE))
+minimumd <- (sapply(daned,min, na.rm = TRUE))
+maximumd <- (sapply(daned,max, na.rm = TRUE))
+kwantyl1d <- (sapply(daned,quantile, na.rm = TRUE, probs = 0.25))
+kwantyl3d <- (sapply(daned,quantile, na.rm = TRUE, probs = 0.75))
+
+
+srednia_all <- data.frame(srednia, sredniad, sredniahd, sredniaKNN, sredniam)
+srednia_all <- t(srednia_all)
+mediana_all <- data.frame(mediana, medianad, medianahd, medianaKNN, medianam)
+mediana_all <- t(mediana_all)
+minimum_all <- data.frame(minimum, minimumd, minimumhd, minimumKNN, minimumm)
+minimum_all <- t(minimum_all)
+maximum_all <- data.frame(maximum, maximumd, maximumhd, maximumKNN, maximumm)
+maximum_all <- t(maximum_all)
+kwantyl1_all <- data.frame(kwantyl1, kwantyl1d, kwantyl1hd, kwantyl1KNN, kwantyl1m)
+kwantyl1_all <- t(kwantyl1_all)
+kwantyl3_all <- data.frame(kwantyl3, kwantyl3d, kwantyl3hd, kwantyl3KNN, kwantyl3m)
+kwantyl3_all <- t(kwantyl3_all)
+statystyki_all <- rbind(srednia_all, mediana_all, minimum_all, maximum_all, kwantyl1_all, kwantyl3_all)
+```
+
