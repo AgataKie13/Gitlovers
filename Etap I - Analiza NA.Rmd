@@ -135,7 +135,7 @@ korelacja <- cor_mat(dane2)
 
 Macierz korelacji przedstawia zależności pomiędzy wszystkimi zmiennymi, umożliwiając wstępną ocenę, które zmienne i w jakim stopniu są ze sobą skorelowane.
 
-## Graficzna analiza braków danych
+## b) Graficzna analiza braków danych
 
 Tworzymy macierz korelacji pomiędzy brakującymi zmiennymi, aby ocenić czy występują jakieś zależności w brakach danych.
 
@@ -292,7 +292,9 @@ plot(fit4,which=4)
 ## 7. Imputacja brakujących danych
 
 ## a) Zastępowanie brakujących danych dominantą
-    *1. Piszę funkcję liczącą dominantę*
+
+*1. Funkcja licząca dominantę*
+
 ```{r}
 dominanta <- function(x) {
   # Sprawdza, czy kolumna jest numeryczna czy kategoryczna
@@ -303,7 +305,9 @@ dominanta <- function(x) {
   }
 }
 ```
-    *2. Zastosowanie funkcji na wszystkich kolumnach*
+
+*2. Zastosowanie funkcji na wszystkich kolumnach*
+
 ```{r}
 dominanty_zmiennych <- sapply(dane2, dominanta)
 dominanty <- data.frame(dominanty_zmiennych)
@@ -311,37 +315,23 @@ dominanty <- t(dominanty)
 dominanty <- as.data.frame(lapply(dominanty, as.factor))
 print(dominant_values)
 ```
-    *3. Zastępuje braki danych dominantą*
+
+*3. Zastąpienie braków danych dominantą*
+
 ```{r}
 for (col in colnames(dane2)) {
   dane2[[col]][is.na(dane2[[col]])] <- dominant_values[col]
 }
 ```
-    *4. Sprawdzam, czy wszystkie braki danych zostały zastąpione*
+
+*4. Sprawdzenie, czy wszystkie braki danych zostały zastąpione*
+
 ```{r}
 library(mice)
 md.pattern(dane2)
 ```
 
-## b) Imputacja brakujących danych metodą hot-deck
-```{r}
-library(hot.deck)
-
-dane_hd <- hot.deck(dane2, m = 1, method = "best.cell", cutoff = 10, sdCutoff = 1,
-         optimizeSD = FALSE, optimStep = 0.1, optimStop = 5, weightedAffinity = FALSE,
-         impContinuous = "HD")
-
-data <- dane_hd[["data"]][[1]]
-```
-......
-Jeszcze raz sprawdzam, czy zostały zapełnione wszystkie komórki z NA
-```{r}
-install.packages("finalfit")
-library(mice)
-md.pattern(data)
-```
-
-## c) Imputacja brakujących danych metodą KNN - K-najbliższych sąsiadów
+## b) Imputacja brakujących danych metodą KNN - K-najbliższych sąsiadów
 
 ```{r}
 install.packages("VIM")
@@ -351,13 +341,13 @@ dane_KNN <- kNN(dane2, k = 5, imp_var = FALSE)
 ```
 
 Brakujące dane zostały uzupełnione za pomocą 5 najbliższych sąsiednich wartości. (k = 5)
-
 Ponowne sprawdzenie czy istnieją braki po imputacji.
 
 ```{r}
 sum(is.na(dane_KNN))
 ```
-## d). Wielowymiarowe wypełnianie braków danych przez równania łańcuchowe
+
+## c) Wielowymiarowe wypełnianie braków danych przez równania łańcuchowe
 
 Do imputacji braków w danych użyto pakietu **mice** (Multivariate Imputation by Chained Equations), stosując metodę **pmm** (Predictive Mean Matching), która wypełniała braki na podstawie podobnych obserwacji z danych.
 
@@ -439,3 +429,22 @@ Sprawdzenie czy wszystkie braki zostały uzupełnione.
 sum(is.na(dane2))
 ```
 
+## d) Imputacja brakujących danych metodą hot-deck
+
+```{r}
+library(hot.deck)
+
+dane_hd <- hot.deck(dane2, m = 1, method = "best.cell", cutoff = 10, sdCutoff = 1,
+         optimizeSD = FALSE, optimStep = 0.1, optimStop = 5, weightedAffinity = FALSE,
+         impContinuous = "HD")
+
+data <- dane_hd[["data"]][[1]]
+```
+
+...... Jeszcze raz sprawdzam, czy zostały zapełnione wszystkie komórki z NA
+
+```{r}
+install.packages("finalfit")
+library(mice)
+md.pattern(data)
+```
