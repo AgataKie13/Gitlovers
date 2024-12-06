@@ -6,7 +6,8 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(eval = FALSE, include = FALSE)
+knitr::opts_chunk$set(echo= FALSE)
+
 ```
 
 ## 1. Wczytanie danych
@@ -21,25 +22,25 @@ W pierwszej części projektu analizujemy dane źródłowe pod kątem wystąpien
 
 ## a) Wstępne rozeznanie
 
-```{r}
+```{r echo=FALSE}
 head(dane)
 ```
 
 ## b) Sprawdzanie braków danych
 
-```{r}
+```{r echo=FALSE}
 sum(is.na(dane))
 ```
 
 ## c) Sprawdzanie czy są puste komórki
 
-```{r}
+```{r echo=FALSE}
 sum(dane == "", na.rm = TRUE)
 ```
 
 ## d) zsumowanie pustych komórek i komórek NA
 
-```{r}
+```{r echo=FALSE}
 sum(dane == "" | is.na(dane), na.rm = TRUE)
 ```
 
@@ -49,7 +50,7 @@ Z powyższej analizy wynika, że wśród danych źródłowych znjaduje się **40
 
 Na początek zmienne kategoryczne zostają przekodowane na zmienne numeryczne, aby możliwe było zbadanie koralecji pomiędzy poszczególnymi zmiennymi oraz aby zapobiec pojawianiu się pustych komórek.
 
-```{r}
+```{r include=FALSE}
 dane2 <- dane
 dane2$Gender <- ifelse(dane2$Gender == "Female", 0,
                        ifelse(dane2$Gender == "Male", 1, NA))
@@ -126,15 +127,11 @@ dane2 <- dane2[, sapply(dane2, is.numeric)]
 ## a) Macierz korelacji poszczególnych zmiennych
 
 Następnie tworzymy macierz korelacji wszystkich zmiennych.
-```{r}
-install.packages("rstatix")
+```{r echo=FALSE}
 library(rstatix)
 korelacja <- cor_mat(dane2)
-
-install.packages("ggcorrplot")
 library(ggcorrplot)
 ggcorrplot(cor(dane2))
-
 ```
 
 Macierz korelacji przedstawia zależności pomiędzy wszystkimi zmiennymi, umożliwiając wstępną ocenę, które zmienne i w jakim stopniu są ze sobą skorelowane.
@@ -144,9 +141,6 @@ Macierz korelacji przedstawia zależności pomiędzy wszystkimi zmiennymi, umoż
 Tworzymy macierz korelacji pomiędzy brakującymi zmiennymi, aby ocenić czy występują jakieś zależności w brakach danych.
 
 ```{r echo=FALSE}
-
-install.packages("finalfit")
-install.packages("naniar")
 library(mice)
 dane2_wykres <- dane2 
 names(dane2_wykres) <- c("G","M","D","E","SE","A","C","LA","LAT","CH","PA")
@@ -342,7 +336,6 @@ md.pattern(daned)
 ## b) Imputacja brakujących danych metodą KNN - K-najbliższych sąsiadów
 
 ```{r}
-install.packages("VIM")
 daneKNN <- dane2
 library(VIM)
 
@@ -455,7 +448,6 @@ dane_hd <- dane_hd[["data"]][[1]]
 ...... Jeszcze raz sprawdzam, czy zostały zapełnione wszystkie komórki z NA
 
 ```{r}
-install.packages("finalfit")
 library(mice)
 md.pattern(dane_hd)
 ```
