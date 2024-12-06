@@ -509,3 +509,4 @@ cooks.distance(fit4)
 plot(fit4,which=4)
 ```
 
+**8. Walidacje - pokazać że nie musimy ich robić**
