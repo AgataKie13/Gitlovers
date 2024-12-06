@@ -171,124 +171,9 @@ Hipoteza zerowa testu: Braki danych są MCAR (całkowicie losowe). Hipoteza alte
 
 Ponadto obserwowany niski poziom korelacji pomiędzy zmiennymi oraz analiza powyższych wykresów wskazuje na to, że braki danych należy skategoryzować jako MCAR (Całkowicie losowe braki danych).
 
-## 6. Analiza odchyleń
 
-## a) Obserwacje odstające - jednowymiarowe - Boxplot
+## 6. Imputacja brakujących danych
 
-```{r}
-boxplot(dane2)
-
-par(mfrow = c(2, 2), las = 2)
-boxplot(dane2$ApplicantIncome, dane2$CoapplicantIncome, names = c("AppIncome", "CoappIncome"))
-boxplot(dane2$Loan_Amount_Term, dane2$LoanAmount, names = c("LoanAmountT", "LoanAmount"))
-boxplot(dane2$Gender, dane2$Education, dane2$Credit_History, dane2$Self_Employed, names=c("Płeć", "W", "HK", "SZ"))
-boxplot(dane2$Married, dane2$Dependents, dane2$Property_Area, names=c("SC", "LOU", "Property"))  #bez odchyleń
-
-par(mfrow = c(1, 1))
-plot.new() 
-legend("topleft",      
-       legend = c("AppIncome = Dochód wnioskodawcy", "CoappIncome=Dochód współwnioskodawcy",
-                  "W= Wykształcenie", "HK=Historia Kredytowa", "SZ=Samozatrudnienie",
-                  "SC=Stan cywilny", "LOU=l. osób na utrzymaniu"),
-       cex = 0.9)     
-```
-
-```{r}
-outliers <- boxplot.stats(dane2$Gender)$out
-outliers_idx <- which(dane2$Gender %in% outliers)
-dane2[outliers_idx,]
-dane2[outliers_idx,1:4] <- dane2[outliers_idx,1:4]/10
-summary(dane2)
-```
-
-## b) Obserwacje odstające - wielowymiarowe - Scatterplot
-
-```{r}
-library(GGally)
-ggcorr(dane2)
-
-x <- dane2$ApplicantIncome
-y <- dane2$CoapplicantIncome
-plot(x, y, xlab="AppIncome", ylab="CoappIncome")
-
-a <- dane2$Married
-b <- dane2$Gender
-plot(a, b, xlab="Married", ylab="Gender")
-
-c <- dane2$Education
-d <- dane2$CoapplicantIncome
-plot(c, d, xlab="Education", ylab="CoappIncome")
-
-e <- dane2$Self_Employed
-f <- dane2$Education
-plot(e, f, xlab="self_employed", ylab="education")
-
-g <- dane2$Self_Employed
-h <- dane2$Property_Area
-plot(g, h, xlab="self_employed", ylab="property")
-
-i <- dane2$CoapplicantIncome
-j <- dane2$Property_Area
-plot(i, j, xlab="CoappIncome", ylab="property")
-```
-
-## c) Metoda kwantyl-kwantyl
-
-Stworzono wykresy typu Q-Q dla zmiennych, dla których zidentyfikowano wartości odchylające się podczas analizy wykresami pudełkowymi
-
-```{r}
-qqnorm(dane2$ApplicantIncome, pch = 1, frame = FALSE, main = "Dochód wnioskodawcy")
-qqline(dane2$ApplicantIncome, col = "steelblue", lwd = 2)
-
-qqnorm(dane2$CoapplicantIncome, pch = 1, frame = FALSE, main = "Dochód współwnioskodawcy")
-qqline(dane2$CoapplicantIncome, col = "steelblue", lwd = 2)
-        
-qqnorm(dane2$Loan_Amount_Term, pch = 1, frame = FALSE, main = "Loan_Amount_Term")
-qqline(dane2$Loan_Amount_Term, col = "steelblue", lwd = 2)
-        
-qqnorm(dane2$LoanAmount, pch = 1, frame = FALSE, main = "Kwota kredytu")
-qqline(dane2$LoanAmount, col = "steelblue", lwd = 2)
-
-qqnorm(dane2$Gender, pch=1, frame=FALSE, main= "Płeć")
-qqline(dane2$Gender, col="steelblue", lwd=2)
-
-qqnorm(dane2$Education, pch=1, frame=FALSE, main = "Wykształcenie")
-qqline(dane2$Education, col="steelblue", lwd=2)
-
-qqnorm(dane2$Credit_History, pch=1, frame=FALSE, main = "Historia kredytu")
-qqline(dane2$Credit_History, col="steelblue", lwd=2)
-
-qqnorm(dane2$Self_Employed, pch=1, frame=FALSE, main = "Samozatrudnienie")
-qqline(dane2$Self_Employed, col="steelblue", lwd=2)
-```
-
-## d) Odchylenia Cook'a
-
-```{r}
-library(broom)
-fit = lm(LoanAmount ~ Married,data=dane2)
-cooks.distance(fit)
-plot(fit,which=4)
-
-fit1 = lm(LoanAmount ~ Gender,data=dane2)
-cooks.distance(fit1)
-plot(fit1,which=4)
-
-fit2 = lm(LoanAmount ~ Education,data=dane2)
-cooks.distance(fit2)
-plot(fit2,which=4)
-
-fit3 = lm(LoanAmount ~ ApplicantIncome,data=dane2)
-cooks.distance(fit3)
-plot(fit3,which=4)
-
-fit4 = lm(LoanAmount ~ Loan_Amount_Term,data=dane2)
-cooks.distance(fit4)
-plot(fit4,which=4)
-```
-
-## 7. Imputacja brakujących danych
-**?? ŚREDNIA, MEDIANA ??**
 ## a) Zastępowanie brakujących danych dominantą
 
 *1. Funkcja licząca dominantę*
@@ -348,9 +233,6 @@ Ponowne sprawdzenie czy istnieją braki po imputacji.
 ```{r}
 sum(is.na(dane_KNN))
 ```
-
-**?DRZEWA LOSOWE?-RPART**
-
 ## c) Wielowymiarowe wypełnianie braków danych przez równania łańcuchowe
 
 Do imputacji braków w danych użyto pakietu **mice** (Multivariate Imputation by Chained Equations), stosując metodę **pmm** (Predictive Mean Matching), która wypełniała braki na podstawie podobnych obserwacji z danych.
@@ -508,5 +390,122 @@ kwantyl1_all <- t(kwantyl1_all)
 kwantyl3_all <- data.frame(kwantyl3, kwantyl3d, kwantyl3hd, kwantyl3KNN, kwantyl3m)
 kwantyl3_all <- t(kwantyl3_all)
 statystyki_all <- rbind(srednia_all, mediana_all, minimum_all, maximum_all, kwantyl1_all, kwantyl3_all)
+statystyki_all
+```
+
+## 7. Analiza odchyleń
+
+## a) Obserwacje odstające - jednowymiarowe - Boxplot
+
+```{r}
+boxplot(dane2)
+
+par(mfrow = c(2, 2), las = 2)
+boxplot(dane2$ApplicantIncome, dane2$CoapplicantIncome, names = c("AppIncome", "CoappIncome"))
+boxplot(dane2$Loan_Amount_Term, dane2$LoanAmount, names = c("LoanAmountT", "LoanAmount"))
+boxplot(dane2$Gender, dane2$Education, dane2$Credit_History, dane2$Self_Employed, names=c("Płeć", "W", "HK", "SZ"))
+boxplot(dane2$Married, dane2$Dependents, dane2$Property_Area, names=c("SC", "LOU", "Property"))  #bez odchyleń
+
+par(mfrow = c(1, 1))
+plot.new() 
+legend("topleft",      
+       legend = c("AppIncome = Dochód wnioskodawcy", "CoappIncome=Dochód współwnioskodawcy",
+                  "W= Wykształcenie", "HK=Historia Kredytowa", "SZ=Samozatrudnienie",
+                  "SC=Stan cywilny", "LOU=l. osób na utrzymaniu"),
+       cex = 0.9)     
+```
+
+```{r}
+outliers <- boxplot.stats(dane2$Gender)$out
+outliers_idx <- which(dane2$Gender %in% outliers)
+dane2[outliers_idx,]
+dane2[outliers_idx,1:4] <- dane2[outliers_idx,1:4]/10
+summary(dane2)
+```
+
+## b) Obserwacje odstające - wielowymiarowe - Scatterplot
+
+```{r}
+library(GGally)
+ggcorr(dane2)
+
+x <- dane2$ApplicantIncome
+y <- dane2$CoapplicantIncome
+plot(x, y, xlab="AppIncome", ylab="CoappIncome")
+
+a <- dane2$Married
+b <- dane2$Gender
+plot(a, b, xlab="Married", ylab="Gender")
+
+c <- dane2$Education
+d <- dane2$CoapplicantIncome
+plot(c, d, xlab="Education", ylab="CoappIncome")
+
+e <- dane2$Self_Employed
+f <- dane2$Education
+plot(e, f, xlab="self_employed", ylab="education")
+
+g <- dane2$Self_Employed
+h <- dane2$Property_Area
+plot(g, h, xlab="self_employed", ylab="property")
+
+i <- dane2$CoapplicantIncome
+j <- dane2$Property_Area
+plot(i, j, xlab="CoappIncome", ylab="property")
+```
+
+## c) Metoda kwantyl-kwantyl
+
+Stworzono wykresy typu Q-Q dla zmiennych, dla których zidentyfikowano wartości odchylające się podczas analizy wykresami pudełkowymi
+
+```{r}
+qqnorm(dane2$ApplicantIncome, pch = 1, frame = FALSE, main = "Dochód wnioskodawcy")
+qqline(dane2$ApplicantIncome, col = "steelblue", lwd = 2)
+
+qqnorm(dane2$CoapplicantIncome, pch = 1, frame = FALSE, main = "Dochód współwnioskodawcy")
+qqline(dane2$CoapplicantIncome, col = "steelblue", lwd = 2)
+        
+qqnorm(dane2$Loan_Amount_Term, pch = 1, frame = FALSE, main = "Loan_Amount_Term")
+qqline(dane2$Loan_Amount_Term, col = "steelblue", lwd = 2)
+        
+qqnorm(dane2$LoanAmount, pch = 1, frame = FALSE, main = "Kwota kredytu")
+qqline(dane2$LoanAmount, col = "steelblue", lwd = 2)
+
+qqnorm(dane2$Gender, pch=1, frame=FALSE, main= "Płeć")
+qqline(dane2$Gender, col="steelblue", lwd=2)
+
+qqnorm(dane2$Education, pch=1, frame=FALSE, main = "Wykształcenie")
+qqline(dane2$Education, col="steelblue", lwd=2)
+
+qqnorm(dane2$Credit_History, pch=1, frame=FALSE, main = "Historia kredytu")
+qqline(dane2$Credit_History, col="steelblue", lwd=2)
+
+qqnorm(dane2$Self_Employed, pch=1, frame=FALSE, main = "Samozatrudnienie")
+qqline(dane2$Self_Employed, col="steelblue", lwd=2)
+```
+
+## d) Odchylenia Cook'a
+
+```{r}
+library(broom)
+fit = lm(LoanAmount ~ Married,data=dane2)
+cooks.distance(fit)
+plot(fit,which=4)
+
+fit1 = lm(LoanAmount ~ Gender,data=dane2)
+cooks.distance(fit1)
+plot(fit1,which=4)
+
+fit2 = lm(LoanAmount ~ Education,data=dane2)
+cooks.distance(fit2)
+plot(fit2,which=4)
+
+fit3 = lm(LoanAmount ~ ApplicantIncome,data=dane2)
+cooks.distance(fit3)
+plot(fit3,which=4)
+
+fit4 = lm(LoanAmount ~ Loan_Amount_Term,data=dane2)
+cooks.distance(fit4)
+plot(fit4,which=4)
 ```
 
