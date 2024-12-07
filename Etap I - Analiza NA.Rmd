@@ -391,6 +391,7 @@ kwantyl3_all <- data.frame(kwantyl3, kwantyl3d, kwantyl3hd, kwantyl3KNN, kwantyl
 kwantyl3_all <- t(kwantyl3_all)
 statystyki_all <- rbind(srednia_all, mediana_all, minimum_all, maximum_all, kwantyl1_all, kwantyl3_all)
 statystyki_all
+
 ```
 
 ## 7. Analiza odchyleń
@@ -509,4 +510,39 @@ cooks.distance(fit4)
 plot(fit4,which=4)
 ```
 
-**8. Walidacje - pokazać że nie musimy ich robić**
+**8. Walidacje**
+
+```{r}
+Na walidacje składają się: typos, odpowiednia struktura, ograniczenia liniowe, błędy - zastępujemy je wszystkie NA i jeszcze raz robimy imputacje.
+
+Moje pomysły na reguły walidacyjne:
+
+1. Czy ktoś bez dochodu dostał kredyt? - na daned
+Credit_History = 1 & ApplicantIncome + CoapplicantIncome > 0 
+czy Credit_History = 1 & ApplicantIncome > 0
+
+2. Czy ktoś dostał kredyt, na który go nie stać? - na daned
+Credit_History = 1 & LoanAmount*1000 / 360 < ApplicantIncome + CoapplicantIncome
+
+3. Czy są typos w danych pierwotnych jakościowych?: 	- na pierwotnych danych
+Gender, Married, Education, Self_Employed, Property_Area. 
+
+4. Czy w tej zmiennej uporządkowanej są inne wartości niż NA, pusta kolumna, 0, 1, 2, 3+. ? 
+Dependents - na pierwotnych danych
+
+5. Czy zmienne ilościowe są większe równe 0? - na daned
+ApplicantIncome, CoapplicantIncome, LoanAmount, Loan_Amount_Term, Credit_History
+
+6. Czy jakiegoś Loan_ID nie ma kilka razy? - na pierwotnych danych
+  
+7. Czy wszystkie wartości wszystkich zmiennych są większe równe 0? - na daned  
+
+8. Czy mamy wszędzie dane liczbowe? - daned
+
+
+Mój pomysł niezwiązany z walidacją (ale żebym nie zapomniała :))
+- Na samym początku kodu możemy jeszcze dodać opis danych np. Mamy dane kredytowe. Takie zmienne (wskazać typ zmiennej). Tyle obserwacji. Jaki cel. itp. - czyli to, co nam Pan tam napisał i dodatkowe takie pierwsze spostrzeżenia na temat danych
+
+ 
+```
+
