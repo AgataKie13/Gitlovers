@@ -7,8 +7,11 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo= FALSE)
-
 ```
+
+-   Na samym początku kodu możemy jeszcze dodać opis danych np. Mamy dane kredytowe. Takie zmienne (wskazać typ zmiennej). Tyle obserwacji. Jaki cel. itp. - czyli to, co nam Pan tam napisał i dodatkowe takie pierwsze spostrzeżenia na temat danych
+
+#install.packages("rstatix") #install.packages("ggcorrplot") #install.packages("finalfit") #install.packages("naniar") #install.packages("VIM") #install.packages("finalfit")
 
 ## 1. Wczytanie danych
 
@@ -116,18 +119,21 @@ sum(is.na(dane2))
 
 Ostatecznie w danych znajdują się **84** braki danych oznaczone jako NA.
 
-## d) Zmieniamy zmienne po przekodowaniu na numeryczne.
+## d) Sprawdzanie struktury zmiennych
 
-```{r}
-dane2 <- dane2[, sapply(dane2, is.numeric)]
+```{r include=FALSE}
+str(dane2)
 ```
+
+Zmienne wykazują charakter liczbowy, więc nic nie trzeba zmieniać.
 
 ## 4. Analiza braków danych
 
 ## a) Macierz korelacji poszczególnych zmiennych
 
 Następnie tworzymy macierz korelacji wszystkich zmiennych.
-```{r echo=FALSE}
+
+```{r echo=TRUE}
 library(rstatix)
 korelacja <- cor_mat(dane2)
 library(ggcorrplot)
@@ -171,73 +177,11 @@ Hipoteza zerowa testu: Braki danych są MCAR (całkowicie losowe). Hipoteza alte
 
 Ponadto obserwowany niski poziom korelacji pomiędzy zmiennymi oraz analiza powyższych wykresów wskazuje na to, że braki danych należy skategoryzować jako MCAR (Całkowicie losowe braki danych).
 
-
-## 6. Imputacja brakujących danych
-
-## a) Zastępowanie brakujących danych dominantą
-
-*1. Funkcja licząca dominantę*
-
-```{r}
-dominanta <- function(x) {
-  # Sprawdza, czy kolumna jest numeryczna czy kategoryczna
-  if (is.numeric(x)) {
-    return(names(sort(table(x), decreasing = TRUE)[1]))
-  } else if (is.factor(x) || is.character(x)) {
-    return(names(sort(table(x), decreasing = TRUE)[1]))
-  }
-}
-library(tidyr)
-```
-
-*2. Zastosowanie funkcji na wszystkich kolumnach*
-
-```{r}
-daned <- dane2
-dominanty_zmiennych <- sapply(daned, dominanta)
-dominanty <- data.frame(dominanty_zmiennych)
-dominanty <- t(dominanty)
-dominanty <- as.data.frame(lapply(dominanty, as.factor))
-colnames(dominanty) <- colnames(dane2)
-print(dominanty)
-```
-
-*3. Zastąpienie braków danych dominantą*
-
-```{r}
-dominanty <- lapply(dominanty, as.numeric)
-for (col in colnames(daned)) {
-  daned[[col]][is.na(daned[[col]])] <- dominanty [[col]]
-}
-```
-
-*4. Sprawdzenie, czy wszystkie braki danych zostały zastąpione*
-
-```{r}
-library(mice)
-md.pattern(daned)
-```
-
-## b) Imputacja brakujących danych metodą KNN - K-najbliższych sąsiadów
-
-```{r}
-daneKNN <- dane2
-library(VIM)
-
-dane_KNN <- kNN(daneKNN, k = 5, imp_var = FALSE)
-```
-
-Brakujące dane zostały uzupełnione za pomocą 5 najbliższych sąsiednich wartości. (k = 5)
-Ponowne sprawdzenie czy istnieją braki po imputacji.
-
-```{r}
-sum(is.na(dane_KNN))
-```
-## c) Wielowymiarowe wypełnianie braków danych przez równania łańcuchowe
+## 6. Imputacja brakujących danych - *Wielowymiarowe wypełnianie braków danych przez równania łańcuchowe*
 
 Do imputacji braków w danych użyto pakietu **mice** (Multivariate Imputation by Chained Equations), stosując metodę **pmm** (Predictive Mean Matching), która wypełniała braki na podstawie podobnych obserwacji z danych.
 
-```{r}
+```{r include=FALSE}
 library(mice)
 danem <- dane2
 Gender_imputed <- mice(danem[, c("Gender", "Married", "Dependents", "Education", "Self_Employed", 
@@ -254,7 +198,7 @@ Proces ten został powtórzony dla pozostałych zmiennych
 
 **zmienna Dependents**
 
-```{r}
+```{r include=FALSE}
 Dependents_imputed <- mice(danem[, c("Dependents", "Gender", "Married", "Education", "Self_Employed", 
                                     "ApplicantIncome", "CoapplicantIncome", "LoanAmount", 
                                     "Loan_Amount_Term", "Credit_History", "Property_Area")], 
@@ -265,7 +209,7 @@ danem$Dependents <- complete(Dependents_imputed)$Dependents
 
 **zmienna Self_Employed**
 
-```{r}
+```{r include=FALSE}
 Self_Employed_imputed <- mice(danem[, c("Self_Employed", "Gender", "Married", "Dependents", 
                                        "Education", "ApplicantIncome", "CoapplicantIncome", 
                                        "LoanAmount", "Loan_Amount_Term", "Credit_History", "Property_Area")], 
@@ -276,7 +220,7 @@ danem$Self_Employed <- complete(Self_Employed_imputed)$Self_Employed
 
 **zmienna LoanAmount**
 
-```{r}
+```{r include=FALSE}
 LoanAmount_imputed <- mice(danem[, c("LoanAmount", "Gender", "Married", "Dependents", 
                                     "Education", "Self_Employed", "ApplicantIncome", 
                                     "CoapplicantIncome", "Loan_Amount_Term", "Credit_History", "Property_Area")], 
@@ -287,7 +231,7 @@ danem$LoanAmount <- complete(LoanAmount_imputed)$LoanAmount
 
 **zmienna Loan_Amount_Term**
 
-```{r}
+```{r include=FALSE}
 Loan_Amount_Term_imputed <- mice(danem[, c("Loan_Amount_Term", "Gender", "Married", "Dependents", 
                                           "Education", "Self_Employed", "ApplicantIncome", 
                                           "CoapplicantIncome", "LoanAmount", "Credit_History", "Property_Area")], 
@@ -298,7 +242,7 @@ danem$Loan_Amount_Term <- complete(Loan_Amount_Term_imputed)$Loan_Amount_Term
 
 **zmienna Credit_History**
 
-```{r}
+```{r include=FALSE}
 Credit_History_imputed <- mice(danem[, c("Credit_History", "Gender", "Married", "Dependents", 
                                         "Education", "Self_Employed", "ApplicantIncome", 
                                         "CoapplicantIncome", "LoanAmount", "Loan_Amount_Term", "Property_Area")], 
@@ -315,26 +259,8 @@ Sprawdzenie czy wszystkie braki zostały uzupełnione.
 sum(is.na(danem))
 ```
 
-## d) Imputacja brakujących danych metodą hot-deck
-
-```{r}
-library(hot.deck)
-
-dane_hd <- hot.deck(dane2, m = 1, method = "best.cell", cutoff = 10, sdCutoff = 1,
-         optimizeSD = FALSE, optimStep = 0.1, optimStop = 5, weightedAffinity = FALSE,
-         impContinuous = "HD")
-
-dane_hd <- dane_hd[["data"]][[1]]
-```
-
-...... Jeszcze raz sprawdzam, czy zostały zapełnione wszystkie komórki z NA
-
-```{r}
-library(mice)
-md.pattern(dane_hd)
-```
-
-**PORÓWNANIE STATYSTYK PRZED I PO UŻYCIU RÓŻNYCH METOD IMPUTACJI DANYCH**
+**PORÓWNANIE STATYSTYK PRZED I PO UŻYCIU METODY IMPUTACJI DANYCH**
+*ZNALEŹĆ ŁADNIEJSZY SPOSÓB WIZUALIZACJI TYCH OBLICZEŃ*
 
 ```{r}
 srednia <- (sapply(dane2,mean, na.rm = TRUE))
@@ -344,23 +270,6 @@ maximum <- (sapply(dane2,max, na.rm = TRUE))
 kwantyl1 <- (sapply(dane2,quantile, na.rm = TRUE, probs = 0.25))
 kwantyl3 <- (sapply(dane2,quantile, na.rm = TRUE, probs = 0.75))
 
-
-sredniahd <- (sapply(dane_hd,mean, na.rm = TRUE))
-medianahd <- (sapply(dane_hd,median, na.rm = TRUE))
-minimumhd <- (sapply(dane_hd,min, na.rm = TRUE))
-maximumhd <- (sapply(dane_hd,max, na.rm = TRUE))
-kwantyl1hd <- (sapply(dane_hd,quantile, na.rm = TRUE, probs = 0.25))
-kwantyl3hd <- (sapply(dane_hd,quantile, na.rm = TRUE, probs = 0.75))
-
-
-sredniaKNN <- (sapply(dane_KNN,mean, na.rm = TRUE))
-medianaKNN <- (sapply(dane_KNN,median, na.rm = TRUE))
-minimumKNN <- (sapply(dane_KNN,min, na.rm = TRUE))
-maximumKNN <- (sapply(dane_KNN,max, na.rm = TRUE))
-kwantyl1KNN <- (sapply(dane_KNN,quantile, na.rm = TRUE, probs = 0.25))
-kwantyl3KNN <- (sapply(dane_KNN,quantile, na.rm = TRUE, probs = 0.75))
-
-
 sredniam <- (sapply(danem,mean, na.rm = TRUE))
 medianam <- (sapply(danem,median, na.rm = TRUE))
 minimumm <- (sapply(danem,min, na.rm = TRUE))
@@ -368,94 +277,93 @@ maximumm <- (sapply(danem,max, na.rm = TRUE))
 kwantyl1m <- (sapply(danem,quantile, na.rm = TRUE, probs = 0.25))
 kwantyl3m <- (sapply(danem,quantile, na.rm = TRUE, probs = 0.75))
 
-
-sredniad <- (sapply(daned,mean, na.rm = TRUE))
-medianad <- (sapply(daned,median, na.rm = TRUE))
-minimumd <- (sapply(daned,min, na.rm = TRUE))
-maximumd <- (sapply(daned,max, na.rm = TRUE))
-kwantyl1d <- (sapply(daned,quantile, na.rm = TRUE, probs = 0.25))
-kwantyl3d <- (sapply(daned,quantile, na.rm = TRUE, probs = 0.75))
-
-
-srednia_all <- data.frame(srednia, sredniad, sredniahd, sredniaKNN, sredniam)
+srednia_all <- data.frame(srednia, sredniam)
 srednia_all <- t(srednia_all)
-mediana_all <- data.frame(mediana, medianad, medianahd, medianaKNN, medianam)
+mediana_all <- data.frame(mediana, medianam)
 mediana_all <- t(mediana_all)
-minimum_all <- data.frame(minimum, minimumd, minimumhd, minimumKNN, minimumm)
+minimum_all <- data.frame(minimum, minimumm)
 minimum_all <- t(minimum_all)
-maximum_all <- data.frame(maximum, maximumd, maximumhd, maximumKNN, maximumm)
+maximum_all <- data.frame(maximum, maximumm)
 maximum_all <- t(maximum_all)
-kwantyl1_all <- data.frame(kwantyl1, kwantyl1d, kwantyl1hd, kwantyl1KNN, kwantyl1m)
+kwantyl1_all <- data.frame(kwantyl1, kwantyl1m)
 kwantyl1_all <- t(kwantyl1_all)
-kwantyl3_all <- data.frame(kwantyl3, kwantyl3d, kwantyl3hd, kwantyl3KNN, kwantyl3m)
+kwantyl3_all <- data.frame(kwantyl3, kwantyl3m)
 kwantyl3_all <- t(kwantyl3_all)
 statystyki_all <- rbind(srednia_all, mediana_all, minimum_all, maximum_all, kwantyl1_all, kwantyl3_all)
 statystyki_all
-
 ```
 
-## 7. Analiza odchyleń
+## 7. Analiza odchyleń danych po imputacji
 
 ## a) Obserwacje odstające - jednowymiarowe - Boxplot
 
 ```{r}
-boxplot(dane2)
+boxplot((danem), main = "Analiza odchyleń")
 
-par(mfrow = c(2, 2), las = 2)
-boxplot(dane2$ApplicantIncome, dane2$CoapplicantIncome, names = c("AppIncome", "CoappIncome"))
-boxplot(dane2$Loan_Amount_Term, dane2$LoanAmount, names = c("LoanAmountT", "LoanAmount"))
-boxplot(dane2$Gender, dane2$Education, dane2$Credit_History, dane2$Self_Employed, names=c("Płeć", "W", "HK", "SZ"))
-boxplot(dane2$Married, dane2$Dependents, dane2$Property_Area, names=c("SC", "LOU", "Property"))  #bez odchyleń
+layout(matrix(c(1, 2, 3, 4, 5, 5), nrow = 3, byrow = TRUE), heights = c(1, 1, 0.5))
 
-par(mfrow = c(1, 1))
-plot.new() 
-legend("topleft",      
-       legend = c("AppIncome = Dochód wnioskodawcy", "CoappIncome=Dochód współwnioskodawcy",
-                  "W= Wykształcenie", "HK=Historia Kredytowa", "SZ=Samozatrudnienie",
-                  "SC=Stan cywilny", "LOU=l. osób na utrzymaniu"),
-       cex = 0.9)     
-```
+boxplot(danem$ApplicantIncome, danem$CoapplicantIncome, 
+        names = c("AppIncome", "coappIncome"), main = "Dochód wnioskodawców")
+boxplot(danem$Loan_Amount_Term, danem$LoanAmount, 
+        names = c("LoanAmountT", "LoanAmount"), main = "Cechy kredytu")
+boxplot(danem$Gender, danem$Education, danem$Credit_History, 
+        danem$Self_Employed, 
+        names = c("Płeć", "W", "HK", "SZ"), main = "Cechy personalne")
+boxplot(danem$Married, danem$Dependents, danem$Property_Area, 
+        names = c("SC", "LOU", "Property"), main = "Cechy personalne - bez odchyleń")
 
-```{r}
-outliers <- boxplot.stats(dane2$Gender)$out
-outliers_idx <- which(dane2$Gender %in% outliers)
-dane2[outliers_idx,]
-dane2[outliers_idx,1:4] <- dane2[outliers_idx,1:4]/10
-summary(dane2)
+par(mar = c(0, 0, 0, 0))
+plot.new()
+legend("center",
+       legend = c(
+         "AppIncome = Dochód wnioskodawcy", 
+         "coappIncome = Dochód współwnioskodawcy",
+         "W = Wykształcenie", 
+         "HK = Historia Kredytowa", 
+         "SZ = Samozatrudnienie",
+         "SC = Stan cywilny", 
+         "LOU = L. osób na utrzymaniu"),
+       cex = 1,
+       bty = "n")
 ```
 
 ## b) Obserwacje odstające - wielowymiarowe - Scatterplot
 
 ```{r}
-library(GGally)
-ggcorr(dane2)
+ggcorrplot(cor(danem))
 
-x <- dane2$ApplicantIncome
-y <- dane2$CoapplicantIncome
+x <- danem$ApplicantIncome
+y <- danem$CoapplicantIncome
 plot(x, y, xlab="AppIncome", ylab="CoappIncome")
 
-a <- dane2$Married
-b <- dane2$Gender
-plot(a, b, xlab="Married", ylab="Gender")
+a <- danem$Credit_History
+b <- danem$ApplicantIncome
+plot(a, b, xlab="Historia kredytowa", ylab="Dochód wnioskodawcy")
 
-c <- dane2$Education
-d <- dane2$CoapplicantIncome
-plot(c, d, xlab="Education", ylab="CoappIncome")
+a <- danem$Credit_History
+b <- danem$CoapplicantIncome
+plot(a, b, xlab="Historia kredytowa", ylab="Dochód współwnioskodawcy")
 
-e <- dane2$Self_Employed
-f <- dane2$Education
-plot(e, f, xlab="self_employed", ylab="education")
+a <- danem$Credit_History
+b <- danem$LoanAmount
+plot(a, b, xlab="Historia kredytowa", ylab="Kwota kredytu")
 
-g <- dane2$Self_Employed
-h <- dane2$Property_Area
-plot(g, h, xlab="self_employed", ylab="property")
+a <- danem$Credit_History
+b <- danem$Loan_Amount_Term
+plot(a, b, xlab="Historia kredytowa", ylab="Czas kredytu")
 
-i <- dane2$CoapplicantIncome
-j <- dane2$Property_Area
-plot(i, j, xlab="CoappIncome", ylab="property")
+a <- danem$Credit_History
+b <- danem$Self_Employed
+plot(a, b, xlab="Historia kredytowa", ylab="Samozatrudnienie")
 ```
 
-## c) Metoda kwantyl-kwantyl
+*ewentualna interpretacja wyników*
+
+-   Istotności zależności: silna / słaba / brak. Siła korelacji może być określona przez to, jak ściśle upakowane są punkty na wykresie.
+-   Rodzaj korelacji: liniowa (dodatnia lub ujemna), wykładnicza, w kształcie U, sinusoidy itp. Czyli tak naprawdę, jeśli występuje korelacja, to jaka jest zależność między zmiennymi.
+-   Łatwa identyfikacja czy są wartości odstające. Punkty, które kończą się daleko poza ogólnym skupieniem punktów, są znane jako wartości odstające.
+
+## c) Metoda kwantyl-kwantyl - **JESZCZE NIE ZMIENIONE**
 
 Stworzono wykresy typu Q-Q dla zmiennych, dla których zidentyfikowano wartości odchylające się podczas analizy wykresami pudełkowymi
 
@@ -522,7 +430,7 @@ Credit_History = 1 & ApplicantIncome + CoapplicantIncome > 0
 czy Credit_History = 1 & ApplicantIncome > 0
 
 2. Czy ktoś dostał kredyt, na który go nie stać? - na daned
-Credit_History = 1 & LoanAmount*1000 / 360 < ApplicantIncome + CoapplicantIncome
+Credit_History = 1 & [(LoanAmount*1000 / liczba rat) < (ApplicantIncome + CoapplicantIncome)]
 
 3. Czy są typos w danych pierwotnych jakościowych?: 	- na pierwotnych danych
 Gender, Married, Education, Self_Employed, Property_Area. 
@@ -534,15 +442,8 @@ Dependents - na pierwotnych danych
 ApplicantIncome, CoapplicantIncome, LoanAmount, Loan_Amount_Term, Credit_History
 
 6. Czy jakiegoś Loan_ID nie ma kilka razy? - na pierwotnych danych
-  
+      
 7. Czy wszystkie wartości wszystkich zmiennych są większe równe 0? - na daned  
 
 8. Czy mamy wszędzie dane liczbowe? - daned
-
-
-Mój pomysł niezwiązany z walidacją (ale żebym nie zapomniała :))
-- Na samym początku kodu możemy jeszcze dodać opis danych np. Mamy dane kredytowe. Takie zmienne (wskazać typ zmiennej). Tyle obserwacji. Jaki cel. itp. - czyli to, co nam Pan tam napisał i dodatkowe takie pierwsze spostrzeżenia na temat danych
-
- 
 ```
-
