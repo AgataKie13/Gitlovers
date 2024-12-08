@@ -259,8 +259,7 @@ Sprawdzenie czy wszystkie braki zostały uzupełnione.
 sum(is.na(danem))
 ```
 
-**PORÓWNANIE STATYSTYK PRZED I PO UŻYCIU METODY IMPUTACJI DANYCH**
-*ZNALEŹĆ ŁADNIEJSZY SPOSÓB WIZUALIZACJI TYCH OBLICZEŃ*
+**PORÓWNANIE STATYSTYK PRZED I PO UŻYCIU METODY IMPUTACJI DANYCH** *ZNALEŹĆ ŁADNIEJSZY SPOSÓB WIZUALIZACJI TYCH OBLICZEŃ*
 
 ```{r}
 srednia <- (sapply(dane2,mean, na.rm = TRUE))
@@ -420,30 +419,90 @@ plot(fit4,which=4)
 
 **8. Walidacje**
 
-```{r}
 Na walidacje składają się: typos, odpowiednia struktura, ograniczenia liniowe, błędy - zastępujemy je wszystkie NA i jeszcze raz robimy imputacje.
 
 Moje pomysły na reguły walidacyjne:
 
-1. Czy ktoś bez dochodu dostał kredyt? - na daned
-Credit_History = 1 & ApplicantIncome + CoapplicantIncome > 0 
-czy Credit_History = 1 & ApplicantIncome > 0
+1.  Czy ktoś bez dochodu dostał kredyt? - na daned Credit_History = 1 & ApplicantIncome + CoapplicantIncome \> 0 czy Credit_History = 1 & ApplicantIncome \> 0
 
-2. Czy ktoś dostał kredyt, na który go nie stać? - na daned
-Credit_History = 1 & [(LoanAmount*1000 / liczba rat) < (ApplicantIncome + CoapplicantIncome)]
+2.  Czy ktoś dostał kredyt, na który go nie stać? - na daned Credit_History = 1 & [(LoanAmount\*1000 / liczba rat) \< (ApplicantIncome + CoapplicantIncome)]
 
-3. Czy są typos w danych pierwotnych jakościowych?: 	- na pierwotnych danych
-Gender, Married, Education, Self_Employed, Property_Area. 
+3.  Czy są typos w danych pierwotnych jakościowych?: - na pierwotnych danych Gender, Married, Education, Self_Employed, Property_Area.
 
-4. Czy w tej zmiennej uporządkowanej są inne wartości niż NA, pusta kolumna, 0, 1, 2, 3+. ? 
-Dependents - na pierwotnych danych
+4.  Czy w tej zmiennej uporządkowanej są inne wartości niż NA, pusta kolumna, 0, 1, 2, 3+. ? Dependents - na pierwotnych danych
 
-5. Czy zmienne ilościowe są większe równe 0? - na daned
-ApplicantIncome, CoapplicantIncome, LoanAmount, Loan_Amount_Term, Credit_History
+5.  Czy zmienne ilościowe są większe równe 0? - na daned ApplicantIncome, CoapplicantIncome, LoanAmount, Loan_Amount_Term, Credit_History
 
-6. Czy jakiegoś Loan_ID nie ma kilka razy? - na pierwotnych danych
-      
-7. Czy wszystkie wartości wszystkich zmiennych są większe równe 0? - na daned  
+6.  Czy jakiegoś Loan_ID nie ma kilka razy? - na pierwotnych danych
 
-8. Czy mamy wszędzie dane liczbowe? - daned
+7.  Czy wszystkie wartości wszystkich zmiennych są większe równe 0? - na daned
+
+8.  Czy mamy wszędzie dane liczbowe? - daned
+
+**Walidacja na danych pierwotnych "dane"**
+
+```{r}
+library(validate)
+
+rules_dane <- validator(
+
+  # 3. Czy są typos w danych jakościowych
+  Gender %in% c("Male", "Female", ""),
+  Married %in% c("Yes", "No", ""),      
+  Education %in% c("Graduate", "Not Graduate", ""), 
+  Self_Employed %in% c("Yes", "No", ""),       
+  Property_Area %in% c("Urban", "Semiurban", "Rural", ""),
+
+  # 4. Czy w zmiennej Dependents są inne wartości niż NA, pusta kolumna, 0, 1, 2, 3+?
+  Dependents %in% c(0, 1, 2, "3+", NA),
+
+  # 6. Czy jakiegoś Loan_ID nie ma kilka razy?
+  is_unique(Loan_ID)
+)
+```
+
+Sprawdzenie czy spełnione są warunki dla danych pierwotnych.
+
+```{r}
+cf_dane <- confront(dane, rules_dane)
+summary(cf_dane)
+barplot(cf_dane, main="Walidacja danych pierwotnych 'dane'")
+
+
+```
+
+**Walidacja na danych po imputacji braków "danem"**
+
+```{r}
+
+rules_danem <- validator(
+  # 1. Czy ktoś bez dochodu dostał kredyt?
+  Credit_History == 1 & (ApplicantIncome + CoapplicantIncome > 0),
+  Credit_History == 1 & (ApplicantIncome > 0),    
+
+  # 2. Czy ktoś dostał kredyt, na który go nie stać?
+  Credit_History == 1 & ((LoanAmount * 1000 / Loan_Amount_Term) <= (ApplicantIncome + CoapplicantIncome)),
+
+  # 5. Czy zmienne ilościowe są większe równe 0?
+  ApplicantIncome >= 0,
+  CoapplicantIncome >= 0,
+  LoanAmount >= 0,
+  Loan_Amount_Term >= 0,
+  Credit_History >= 0,
+
+  # 7. Czy wszystkie wartości wszystkich zmiennych są większe równe 0?
+  all(is.finite(.) & . >= 0),
+
+  # 8. Czy mamy wszędzie dane liczbowe?
+  all(sapply(., is.numeric))
+)
+```
+
+Sprawdzenie czy dane po imputacji spełniają określone warunki.
+
+```{r}
+cf_danem <- confront(danem, rules_danem)  
+summary(cf_danem)
+barplot(cf_danem, main="Walidacja danych 'danem'")
+
 ```
