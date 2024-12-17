@@ -11,7 +11,7 @@ knitr::opts_chunk$set(echo= FALSE)
 
 -   Na samym początku kodu możemy jeszcze dodać opis danych np. Mamy dane kredytowe. Takie zmienne (wskazać typ zmiennej). Tyle obserwacji. Jaki cel. itp. - czyli to, co nam Pan tam napisał i dodatkowe takie pierwsze spostrzeżenia na temat danych
 
-#install.packages("rstatix") #install.packages("ggcorrplot") #install.packages("finalfit") #install.packages("naniar") #install.packages("VIM") #install.packages("finalfit")
+#install.packages("rstatix") #install.packages("ggcorrplot") #install.packages("finalfit") #install.packages("naniar") #install.packages("VIM") #install.packages("finalfit") #install.packages("validate")
 
 ## 1. Wczytanie danych
 
