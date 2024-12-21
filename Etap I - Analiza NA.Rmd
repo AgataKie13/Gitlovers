@@ -191,10 +191,8 @@ rules_dane2 <- validator(
   Credit_History >= 0,
 
   # 2. Czy wszystkie wartości wszystkich zmiennych są większe równe 0?
-  all(is.finite(.) & . >= 0),
+  all(is.finite(.) & . >= 0)
 
-  # 3. Czy mamy wszędzie dane liczbowe?
-  sapply(, is.numeric)
 )
 ```
 
@@ -499,4 +497,27 @@ cooks.distance(fit4)
 plot(fit4,which=4)
 ```
 
+Zamiana danych spowrotem na jakościowe, aby ułatwić wizualizację.
 
+```{r include=FALSE}
+danej <- danem
+danej$Gender <- ifelse(danej$Gender == 0, "Female", "Male")
+
+danej$Married <- ifelse(danej$Married == 1, "Yes" , "No")
+
+danej$Self_Employed <- ifelse(danej$Self_Employed == 1, "Yes", "No")
+
+
+danej$Education <- ifelse(danej$Education == 1, "Graduate", "Not Graduate")
+
+
+danej$Property_Area <- ifelse(danej$Property_Area == 1, "Rural", 
+                              ifelse(danej$Property_Area == 2, "Semiurban", "Urban"))
+
+
+
+danej$Dependents <- ifelse(danej$Dependents == 3, "3+", 
+                           ifelse(danej$Dependents == 2, "2", 
+                                  ifelse(danej$Dependents == 1, "1","0")))
+summary.data.frame(danej)
+```
