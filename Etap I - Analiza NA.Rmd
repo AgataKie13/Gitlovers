@@ -484,35 +484,41 @@ qqline(danem$Loan_Amount_Term, col = "steelblue", lwd = 2)
 qqnorm(danem$LoanAmount, pch = 1, frame = FALSE, main = "Kwota kredytu")
 qqline(danem$LoanAmount, col = "steelblue", lwd = 2)
 ```
-Analiza wykresów kwantyl-kwantyl pozwala na ocenienie czy dane pasują do oczekiwanego rozkładu zmiennej.
-W trzech sytuacjach występują zauważalne trendy rosnące, którym towarzyszą delikatne odchylenia powyżej lini tendencji. Jedynie na wykresie obrazującym **Czas trwania kredytu** występuje trend stały równy około 350 jednostek pieniężnych, który przyjmuje większość obserwacji.
+
+Analiza wykresów kwantyl-kwantyl pozwala na ocenienie czy dane pasują do oczekiwanego rozkładu zmiennej. W trzech sytuacjach występują zauważalne trendy rosnące, którym towarzyszą delikatne odchylenia powyżej lini tendencji. Jedynie na wykresie obrazującym **Czas trwania kredytu** występuje trend stały równy około 350 jednostek pieniężnych, który przyjmuje większość obserwacji.
 
 #### d) Odchylenia Cook'a
 
 ```{r echo=FALSE}
 library(broom)
-layout(matrix(c(1, 2, 3, 4, 5, 5), nrow = 3, byrow = TRUE), heights = c(1, 1, 1))
-fit = lm(LoanAmount ~ Married,data=dane2)
-cooks.distance(fit)
-plot(fit,which=4)
-
-fit1 = lm(LoanAmount ~ Gender,data=dane2)
-cooks.distance(fit1)
-plot(fit1,which=4)
-
-fit2 = lm(LoanAmount ~ Education,data=dane2)
-cooks.distance(fit2)
-plot(fit2,which=4)
-
-fit3 = lm(LoanAmount ~ ApplicantIncome,data=dane2)
+layout(matrix(c(1, 2), nrow = TRUE, byrow = 2), heights = c(1, 1, 1))
+fit = lm(LoanAmount ~ ApplicantIncome,data=dane2)
 cooks.distance(fit3)
-plot(fit3,which=4)
+plot(fit3,which=4, main="Kwota kredytu vs Dochód wnioskodawcy")
 
-fit4 = lm(LoanAmount ~ Loan_Amount_Term,data=dane2)
+fit1 = lm(LoanAmount ~ Loan_Amount_Term,data=dane2)
 cooks.distance(fit4)
-plot(fit4,which=4)
+plot(fit4,which=4, main="Kwota kredytu vs Czas trwania")
+
+fit2 = lm(LoanAmount ~ Married,data=dane2)
+cooks.distance(fit)
+plot(fit,which=4, main="Kwota kredytu vs Stan cywilny")
+
+fit3 = lm(LoanAmount ~ Gender,data=dane2)
+cooks.distance(fit1)
+plot(fit1,which=4, main="Kwota kredytu vs Płeć")
+
+layout(matrix(c(1), nrow = TRUE, byrow = 1), heights = c(1, 1, 1))
+
+fit4 = lm(LoanAmount ~ Education,data=dane2)
+cooks.distance(fit2)
+plot(fit2,which=4, main="Kwota kredytu vs Wykształcenie")
+
 ```
-Dystans Cooka mierzy wpływ pojedynczej obserwacji na dopasowanie modelu. Na osi Y przedstawiane są wartości Cook's Distance, a na osi X liczba obserwacji.
+
+Dystans Cooka mierzy wpływ pojedynczej obserwacji na dopasowanie modelu. Na osi Y przedstawiane są wartości Cook's Distance, a na osi X liczba obserwacji. \
+Dla wykresu **Kwota kredytu vs Dochód wnioskodawcy** Dystans Cooka jest większy od 1, co oznacza, że taki punkt może być uznawany za odstający. W pozostałych pryzpadkach wartości wskaźnika są mniejsze od 1.\
+Punkty znajdujące się blisko OX mają niewielki wpływ na na model, dzięki czemu można uznać je za normalne. Na każdym wykresie znajduje się kilka istotnie wykraczających wartości, które pozostały po przeprowadzonej walidacji i analizie braków danych.
 
 ### 9. Wizualizacja danych
 
