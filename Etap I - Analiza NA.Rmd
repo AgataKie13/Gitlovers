@@ -17,7 +17,7 @@ Firma zajmuje się wszystkimi kredytami mieszkaniowymi. Jest obecna na wszystkic
 
 Firma chce zautomatyzować proces przyznawania pożyczki (w czasie rzeczywistym) w oparciu o dane klienta podane podczas wypełniania wniosku online. Dane te obejmują płeć, stan cywilny, wykształcenie, liczbę osób na utrzymaniu, dochód, kwotę pożyczki, historię kredytową i inne. Aby zautomatyzować ten proces, firma postawiła sobie za cel zidentyfikowanie segmentów klientów kwalifikujących się do otrzymania kwoty pożyczki i skierowanie jej właśnie do nich. W tym przypadku dostarczono częściowy zestaw danych.
 
-### **Otrzymane dane:** 
+### **Otrzymane dane:**
 
 *Zmienna objaśniana*:
 
@@ -36,7 +36,7 @@ Firma chce zautomatyzować proces przyznawania pożyczki (w czasie rzeczywistym)
 -   **LoanAmount** - informuje o kwocie kredytu;
 -   **Loan_Amount_Term** - informuje o czasie trwania kredytu.
 
-### **Pakiety wykorzystane w projekcie:** 
+### **Pakiety wykorzystane w projekcie:**
 
 install.packages("rstatix") install.packages("ggcorrplot") install.packages("finalfit") install.packages("naniar") install.packages("VIM") install.packages("finalfit")\
 install.packages("validate")
@@ -155,7 +155,7 @@ Zmienne wykazują charakter liczbowy, więc nic nie trzeba zmieniać.
 
 **Walidacja na danych pierwotnych "dane".**
 
-```{r}
+```{r include=FALSE}
 library(validate)
 
 rules_dane <- validator(
@@ -177,7 +177,7 @@ rules_dane <- validator(
 
 Sprawdzenie czy spełnione są warunki dla danych pierwotnych "dane".
 
-```{r}
+```{r echo=FALSE}
 cf_dane <- confront(dane, rules_dane)
 summary(cf_dane)
 plot(cf_dane, main="Walidacja danych pierwotnych")
@@ -186,7 +186,7 @@ plot(cf_dane, main="Walidacja danych pierwotnych")
 
 **Walidacja na danych przekodowanych "dane2".**
 
-```{r}
+```{r include=FALSE}
 
 rules_dane2 <- validator(
 
@@ -205,7 +205,7 @@ rules_dane2 <- validator(
 
 Sprawdzenie czy dane przekodowane spełniają określone warunki.
 
-```{r}
+```{r echo=FALSE}
 cf_dane2 <- confront(dane2, rules_dane2)  
 summary(cf_dane2)
 barplot(cf_dane2, main="Walidacja danych po przekodowaniu")
@@ -379,9 +379,9 @@ statystyki_all <- rbind(srednia_all, mediana_all, minimum_all, maximum_all, kwan
 statystyki_all
 ```
 
-#### 8. Analiza odchyleń danych po imputacji
+### 8. Analiza odchyleń danych po imputacji
 
-### a) Obserwacje odstające - jednowymiarowe - Boxplot
+#### a) Obserwacje odstające - jednowymiarowe - Boxplot
 
 ```{r}
 boxplot((danem), main = "Analiza odchyleń")
@@ -403,7 +403,7 @@ plot.new()
 legend("center",
        legend = c(
          "AppIncome = Dochód wnioskodawcy", 
-         "coappIncome = Dochód współwnioskodawcy",
+         "CoappIncome = Dochód współwnioskodawcy",
          "W = Wykształcenie", 
          "HK = Historia Kredytowa", 
          "SZ = Samozatrudnienie",
@@ -413,6 +413,8 @@ legend("center",
        bty = "n")
 ```
 
+Z analizy wykresów pudełkowych wynika, że najbardziej odchylającymi się zmiennymi jest **ApplicantIncome** oraz **CoapplicantIncome**. Ponadto zauważalne różnice występują dla zmiennych **LoanAmount** i **LoanAmountT**. Pozostałe zmienne nie wykazują znaczących odchyleń.
+
 ### b) Obserwacje odstające - wielowymiarowe - Scatterplot
 
 ```{r}
@@ -420,34 +422,49 @@ ggcorrplot(cor(danem))
 
 x <- danem$ApplicantIncome
 y <- danem$CoapplicantIncome
-plot(x, y, xlab="AppIncome", ylab="CoappIncome")
+plot(x, y, xlab="Dochód wnioskodawcy", ylab="Dochód współwnioskodawcy", main="Zależność między dochodem wnioskodawcy a współwnioskodawcy")
 
 a <- danem$Credit_History
 b <- danem$ApplicantIncome
-plot(a, b, xlab="Historia kredytowa", ylab="Dochód wnioskodawcy")
+plot(a, b, xlab="Historia kredytowa", ylab="Dochód wnioskodawcy", main="Zależność między historią kredytową a dochodem wnioskodawcy")
 
 a <- danem$Credit_History
 b <- danem$CoapplicantIncome
-plot(a, b, xlab="Historia kredytowa", ylab="Dochód współwnioskodawcy")
+plot(a, b, xlab="Historia kredytowa", ylab="Dochód współwnioskodawcy", main="Zależność między historią kredytową a dochodem współwnioskodawcy")
 
 a <- danem$Credit_History
 b <- danem$LoanAmount
-plot(a, b, xlab="Historia kredytowa", ylab="Kwota kredytu")
+plot(a, b, xlab="Historia kredytowa", ylab="Kwota kredytu", main="Zależność między historią kredytową a kwotą kredytu")
 
-a <- danem$Credit_History
-b <- danem$Loan_Amount_Term
-plot(a, b, xlab="Historia kredytowa", ylab="Czas kredytu")
-
-a <- danem$Credit_History
-b <- danem$Self_Employed
-plot(a, b, xlab="Historia kredytowa", ylab="Samozatrudnienie")
+a <- danem$ApplicantIncome
+b <- danem$LoanAmount
+plot(a, b, xlab="Dochód wnioskodawcy", ylab="Kwota kredytu",  main="Zależność między dochodem wnioskodawcy a kwotą kredytu")
 ```
 
-*ewentualna interpretacja wyników*
+*Interpretacja wyników*
 
--   Istotności zależności: silna / słaba / brak. Siła korelacji może być określona przez to, jak ściśle upakowane są punkty na wykresie.
--   Rodzaj korelacji: liniowa (dodatnia lub ujemna), wykładnicza, w kształcie U, sinusoidy itp. Czyli tak naprawdę, jeśli występuje korelacja, to jaka jest zależność między zmiennymi.
--   Łatwa identyfikacja czy są wartości odstające. Punkty, które kończą się daleko poza ogólnym skupieniem punktów, są znane jako wartości odstające.
+1.  **Zależność między dochodem wnioskodawcy a współwnioskodawcy**\
+    Z macierzy korelacji wynika, że pomiędzy zmienną **AplicantIncome** a **CoapplicantIncome** występuje zauważalna relacja ujemna. W związku z tym zbudowano [**wykres punktowy**]{.underline} przedstawiający zależność między dochodem wnioskodawcy a współwnioskodawcy pozwala określić ich udział w generowaniu dochodu. Z analizy wykresu wynika, że zazwyczaj to dochody głównego wnioskodawcy są dominującym składnikiem całkowitego dochodu. Ponadto większość par wnioskodawców osiąga niewysokie dochody, co może wskazywać na niski status dochodowy aplikujących gospodarstw domowych. Zauważalne wartości ekstremalne reprezentują bardzo wysokie dochody wnioskodawców, dla których dochody współwnioskodawców pozostają na niskim poziomie. Wykres nie wskazuje na występowanie bezpośredniej korelacji między zmiennymi. Większość wartości współistnieje na niskim poziomie, lecz nie obserwuje się wyraźnego wzorca.
+
+2.  **Zależność między dochodem wnioskodawcy a kwotą kredytu**
+
+    Zbudowany wykres pokazuje, że większość wnioskodawców ma niskie dochody i ubiega się o kredyty w przedziale 100–300 jednostek pieniężnych. Przy wyższych dochodach kwoty kredytu są bardziej zróżnicowane, lecz nie występuje wyraźna korelacja między dochodem a kwotą kredytu. Obserwuje się również kilka punktów odstających z bardzo wysokimi dochodami i kwotami kredytu.
+
+3.  Zależność zmiennej objaśnianej **historia kredytowa** względem istotnych zmiennych objaśniających
+
+    Zmienna objaśniana ma charakter zmiennej binarnej, w związku z czym wartości dla zmiennej objaśniającej na osi OX znajdują się jedynie przy 0 i 1.
+
+-   [Zależność między historią kredytową a dochodem wnioskodawcy]{.underline}
+
+    Osoby, które nie otrzymały kredytu charakteryzują się niskimi dochodami. Z kolei wśród osób, którym przyznano finansowanie znajdują się osoby o różnym dochododzie - od najniższego do bardzo wysokiego (\> 60.000 jendostek pieniężnych). Taka zależność może wskazywać na fakt, że ta grupa ma większe możliwości finansowe lub łatwiejszy dostęp do kredytów.
+
+-   [Zależność między historią kredytową a dochodem współwnioskodawcy]{.underline}
+
+    Dochód współwnioskodawców jest o wiele niższy od wnioskodawców, lecz zależność względem historii kredytowej jest bardzo podobna. Jedyną anomalią jest pojedyncza wysoka wartość dochodu współwnioskodawcy dla osoby, która nie uzyskała kredytu.
+
+-   [Zależność między historią kredytową a kwotą kredytu]{.underline}
+
+    Kredytu nie uzyskały osoby o niskich potrzebach, z kolei osoby o wyższych potrzebach z większą łatwością uzyskiwały kredyt.
 
 ### c) Metoda kwantyl-kwantyl - DO ZMIANY
 
@@ -504,7 +521,9 @@ cooks.distance(fit4)
 plot(fit4,which=4)
 ```
 
-Zamiana danych spowrotem na jakościowe, aby ułatwić wizualizację.
+### 9. Wizualizacja danych
+
+Zamiana danych na jakościowe, aby ułatwić wizualizację.
 
 ```{r include=FALSE}
 danej <- danem
