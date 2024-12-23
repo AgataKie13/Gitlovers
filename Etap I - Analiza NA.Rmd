@@ -9,39 +9,68 @@ output: html_document
 knitr::opts_chunk$set(echo= FALSE)
 ```
 
--   Na samym początku kodu możemy jeszcze dodać opis danych np. Mamy dane kredytowe. Takie zmienne (wskazać typ zmiennej). Tyle obserwacji. Jaki cel. itp. - czyli to, co nam Pan tam napisał i dodatkowe takie pierwsze spostrzeżenia na temat danych
+### **Informacje o firmie:**
 
-#install.packages("rstatix") #install.packages("ggcorrplot") #install.packages("finalfit") #install.packages("naniar") #install.packages("VIM") #install.packages("finalfit") #install.packages("validate")
+Firma zajmuje się wszystkimi kredytami mieszkaniowymi. Jest obecna na wszystkich obszarach miejskich, półmiejskich i wiejskich. Klient najpierw ubiega się o kredyt mieszkaniowy, a następnie firma sprawdza, czy klient kwalifikuje się do otrzymania pożyczki.
 
-## 1. Wczytanie danych
+### **Analizowany problem:**
+
+Firma chce zautomatyzować proces przyznawania pożyczki (w czasie rzeczywistym) w oparciu o dane klienta podane podczas wypełniania wniosku online. Dane te obejmują płeć, stan cywilny, wykształcenie, liczbę osób na utrzymaniu, dochód, kwotę pożyczki, historię kredytową i inne. Aby zautomatyzować ten proces, firma postawiła sobie za cel zidentyfikowanie segmentów klientów kwalifikujących się do otrzymania kwoty pożyczki i skierowanie jej właśnie do nich. W tym przypadku dostarczono częściowy zestaw danych.
+
+### **Otrzymane dane:** 
+
+*Zmienna objaśniana*:
+
+-   **credit history** - wskazuje, czy dany wniskodawca uzyskał kredyt czy nie.
+
+*Zmienne objaśniające*:
+
+-   **Gender** - zawiera informacje o płci wnioskodawcy;
+-   **Married** - informuje czy wnioskodawca jest w związku małżeńskim czy nie;
+-   **Self_Employed** - informuje czy wnioskodawca jest na samozatrudnieniu;
+-   **Education** - informuje czy wnioskodawca ukończył szkołę;
+-   **Property_Area** - informuje o miejscu zamieszkania wnioskodawcy: "Rural", "Semiurban", "Urban";
+-   **Dependents** - informuje o liczbie osób na utrzymaniu;
+-   **ApplicantIncome** - informuje o dochodzie wnioskodawcy;
+-   **CoapplicantIncome** - informuje o dochodzie współwnioskodawcy;
+-   **LoanAmount** - informuje o kwocie kredytu;
+-   **Loan_Amount_Term** - informuje o czasie trwania kredytu.
+
+### **Pakiety wykorzystane w projekcie:** 
+
+install.packages("rstatix") install.packages("ggcorrplot") install.packages("finalfit") install.packages("naniar") install.packages("VIM") install.packages("finalfit")\
+install.packages("validate")
+
+### 1. Wczytanie danych
 
 ```{r}
 dane <- read.csv("Hipoteczny.csv")
+names(dane)
 ```
 
-## 2. Porządkowanie danych
+### 2. Porządkowanie danych
 
 W pierwszej części projektu analizujemy dane źródłowe pod kątem wystąpienia **braków danych**.
 
-## a) Wstępne rozeznanie
+#### a) Wstępne rozeznanie
 
 ```{r echo=FALSE}
 head(dane)
 ```
 
-## b) Sprawdzanie braków danych
+#### b) Sprawdzanie braków danych
 
 ```{r echo=FALSE}
 sum(is.na(dane))
 ```
 
-## c) Sprawdzanie czy są puste komórki
+#### c) Sprawdzanie czy są puste komórki
 
 ```{r echo=FALSE}
 sum(dane == "", na.rm = TRUE)
 ```
 
-## d) zsumowanie pustych komórek i komórek NA
+#### d) zsumowanie pustych komórek i komórek NA
 
 ```{r echo=FALSE}
 sum(dane == "" | is.na(dane), na.rm = TRUE)
@@ -49,7 +78,7 @@ sum(dane == "" | is.na(dane), na.rm = TRUE)
 
 Z powyższej analizy wynika, że wśród danych źródłowych znjaduje się **40** wartości oznaczonych jako NA oraz **44** zmienne puste. W związu z tym należy przekodować zmienne tak, aby w miejsce pustych komórek pojawiły się wartości NA.
 
-## 3. Przekodowanie zmiennych
+### 3. Przekodowanie zmiennych
 
 Na początek zmienne kategoryczne zostają przekodowane na zmienne numeryczne, aby możliwe było zbadanie koralecji pomiędzy poszczególnymi zmiennymi oraz aby zapobiec pojawianiu się pustych komórek.
 
@@ -83,27 +112,22 @@ dane2$Dependents <- ifelse(dane2$Dependents == "3+", 3,
 dane2 <- dane2[,-1]
 ```
 
-**opis przekształceń poszczególnych zmiennych kategorycznych do postaci numerycznej**
+**Opis przekształceń poszczególnych zmiennych kategorycznych do postaci numerycznej**
 
-**Gender:** Zmienna Gender zawiera informacje o płci, "Male" jest kodowana jako 1, a "Female" 0.
+-   **Gender -** zawiera informacje o płci, "Male" jest kodowana jako 1, a "Female" 0.
+-   **Married -** jest przekodowywana, aby 1 oznaczało "Yes",a 0 "No".
+-   **Self_Employed -** jest przekodowywana na 1 dla odpowiedzi "Yes", a 0 dla "No".
+-   **Education -** Wartości "Graduate" są kodowane jako 1, a "Not Graduate" jako 0
+-   **Property_Area** - zmienna zawiera trzy kategorie: "Rural", "Semiurban", "Urban". Zostały im przypisane kolejno liczby: 1, 2 i 3.
+-   **Dependents** - zmienna zawiera liczbę osób na utrzymaniu, wartość "3+" jest zamieniana na 3, a pozostałe wartości są przekodowane na liczby.
 
-**Married:** Zmienna Married jest przekodowywana, aby 1 oznaczało "Yes",a 0 "No".
-
-**Self_Employed:** Zmienna Self_Employed jest przekodowywana na 1 dla odpowiedzi "Yes", a 0 dla "No".
-
-**Education:** Wartości "Graduate" są kodowane jako 1, a "Not Graduate" jako 0
-
-**Property_Area:** Zmienna Property_Area zawiera trzy kategorie: "Rural", "Semiurban", "Urban". Zostały im przypisane kolejno liczby: 1, 2 i 3.
-
-**Dependents:** Zmienna Dependents zawiera liczbę osób na utrzymaniu, wartość "3+" jest zamieniana na 3, a pozostałe wartości są przekodowane na liczby.
-
-## a) Następnie sprawdzamy jak wyglądają zmienne po przekodowaniu.
+#### a) Następnie sprawdzamy jak wyglądają zmienne po przekodowaniu.
 
 ```{r}
 head(dane2)
 ```
 
-## b) Sprawdzanie czy są puste komórki
+#### b) Sprawdzanie czy są puste komórki
 
 ```{r}
 sum(dane2 == "", na.rm = TRUE)
@@ -111,7 +135,7 @@ sum(dane2 == "", na.rm = TRUE)
 
 W wyniku przekodowania zmiennych zniwelowane zostały puste komórki, które przyjęły teraz postać NA.
 
-## c) Sprawdzanie braków danych
+#### c) Sprawdzanie braków danych
 
 ```{r}
 sum(is.na(dane2))
@@ -119,7 +143,7 @@ sum(is.na(dane2))
 
 Ostatecznie w danych znajdują się **84** braki danych oznaczone jako NA.
 
-## d) Sprawdzanie struktury zmiennych
+#### d) Sprawdzanie struktury zmiennych
 
 ```{r include=FALSE}
 str(dane2)
@@ -127,26 +151,9 @@ str(dane2)
 
 Zmienne wykazują charakter liczbowy, więc nic nie trzeba zmieniać.
 
-**4. Walidacje**
+### **4. Walidacje**
 
-Na walidacje składają się: typos, odpowiednia struktura, ograniczenia liniowe, błędy - zastępujemy je wszystkie NA i jeszcze raz robimy imputacje.
-
-Moje pomysły na reguły walidacyjne:
-
-
-1.  Czy są typos w danych pierwotnych jakościowych?: - na pierwotnych danych Gender, Married, Education, Self_Employed, Property_Area.
-
-2.  Czy w tej zmiennej uporządkowanej są inne wartości niż NA, pusta kolumna, 0, 1, 2, 3+. ? Dependents - na pierwotnych danych
-
-3.  Czy zmienne ilościowe są większe równe 0? - na dane2 ApplicantIncome, CoapplicantIncome, LoanAmount, Loan_Amount_Term, Credit_History
-
-4.  Czy jakiegoś Loan_ID nie ma kilka razy? - na pierwotnych danych
-
-5.  Czy wszystkie wartości wszystkich zmiennych są większe równe 0? - na dane2
-
-6.  Czy mamy wszędzie dane liczbowe? - dane2
-
-**Walidacja na danych pierwotnych "dane"**
+**Walidacja na danych pierwotnych "dane".**
 
 ```{r}
 library(validate)
@@ -177,7 +184,7 @@ plot(cf_dane, main="Walidacja danych pierwotnych")
 
 ```
 
-**Walidacja na danych przekodowanych "dane2"**
+**Walidacja na danych przekodowanych "dane2".**
 
 ```{r}
 
@@ -207,9 +214,9 @@ barplot(cf_dane2, main="Walidacja danych po przekodowaniu")
 
 Dane pozytywnie przeszły walidacje. Wszystkie obserwacje spełniają wyżej wymienione reguły. Ujawniono braki danych, które zostaną omówioe w następnej części raportu.
 
-## 5. Analiza braków danych
+### 5. Analiza braków danych
 
-## a) Macierz korelacji poszczególnych zmiennych
+#### a) Macierz korelacji poszczególnych zmiennych
 
 Następnie tworzymy macierz korelacji wszystkich zmiennych.
 
@@ -222,7 +229,7 @@ ggcorrplot(cor(dane2))
 
 Macierz korelacji przedstawia zależności pomiędzy wszystkimi zmiennymi, umożliwiając wstępną ocenę, które zmienne i w jakim stopniu są ze sobą skorelowane.
 
-## b) Graficzna analiza braków danych
+#### b) Graficzna analiza braków danych
 
 Tworzymy macierz korelacji pomiędzy brakującymi zmiennymi, aby ocenić czy występują jakieś zależności w brakach danych.
 
@@ -237,7 +244,7 @@ gg_miss_upset(dane2)
 vis_miss(dane2, cluster=TRUE, sort_miss=TRUE)
 ```
 
-## 6. WNIOSKI
+### 6. WNIOSKI
 
 Pierwszy z efektów analizy to **macierz wzorców braków danych**, która przedstawia unikalne wzorce braków danych dla poszczególnych zmiennych. Komórki z brakami są zaznaczone w tabeli na różowo, co pozwala zrozumieć, które zmienne i jak często mają braki. Pierwszy wiersz (289 obserwacji) nie ma żadnych braków danych. Oznacza to, że większość danych jest kompletna. Natomiast W pozostałych wierszach widzimy różne wzorce braków. Na przykład w drugim wierszu 25 obserwacji ma braki w zmiennej CH. Z kolei zmienna CH ma 29 braków.
 
@@ -245,7 +252,7 @@ Drugi wynikiem jest **wykres słupkowy braków danych względem kategorii**, kt�
 
 Na koniec zbudowano **mapę cieni**, która przedstawia procentowy udział braków danych w całości analizowanych danych. W analizowanym przypadku braki danych stanowią 2,1% zmiennych, z czego największy udział mają braki w kolumnie Credit_History (8%), a najmniejszy - LoanAmount (1%).
 
-## Test statystyczny braków danych
+### Test statystyczny braków danych
 
 ```{r}
 mcar_test(dane2)
@@ -257,7 +264,7 @@ Hipoteza zerowa testu: Braki danych są MCAR (całkowicie losowe). Hipoteza alte
 
 Ponadto obserwowany niski poziom korelacji pomiędzy zmiennymi oraz analiza powyższych wykresów wskazuje na to, że braki danych należy skategoryzować jako MCAR (Całkowicie losowe braki danych).
 
-## 7. Imputacja brakujących danych - *Wielowymiarowe wypełnianie braków danych przez równania łańcuchowe*
+#### 7. Imputacja brakujących danych - *Wielowymiarowe wypełnianie braków danych przez równania łańcuchowe*
 
 Do imputacji braków w danych użyto pakietu **mice** (Multivariate Imputation by Chained Equations), stosując metodę **pmm** (Predictive Mean Matching), która wypełniała braki na podstawie podobnych obserwacji z danych.
 
@@ -339,7 +346,7 @@ Sprawdzenie czy wszystkie braki zostały uzupełnione.
 sum(is.na(danem))
 ```
 
-**PORÓWNANIE STATYSTYK PRZED I PO UŻYCIU METODY IMPUTACJI DANYCH** *ZNALEŹĆ ŁADNIEJSZY SPOSÓB WIZUALIZACJI TYCH OBLICZEŃ*
+#### **PORÓWNANIE STATYSTYK PRZED I PO UŻYCIU METODY IMPUTACJI DANYCH**
 
 ```{r}
 srednia <- (sapply(dane2,mean, na.rm = TRUE))
@@ -372,9 +379,9 @@ statystyki_all <- rbind(srednia_all, mediana_all, minimum_all, maximum_all, kwan
 statystyki_all
 ```
 
-## 8. Analiza odchyleń danych po imputacji
+#### 8. Analiza odchyleń danych po imputacji
 
-## a) Obserwacje odstające - jednowymiarowe - Boxplot
+### a) Obserwacje odstające - jednowymiarowe - Boxplot
 
 ```{r}
 boxplot((danem), main = "Analiza odchyleń")
@@ -406,7 +413,7 @@ legend("center",
        bty = "n")
 ```
 
-## b) Obserwacje odstające - wielowymiarowe - Scatterplot
+### b) Obserwacje odstające - wielowymiarowe - Scatterplot
 
 ```{r}
 ggcorrplot(cor(danem))
@@ -442,7 +449,7 @@ plot(a, b, xlab="Historia kredytowa", ylab="Samozatrudnienie")
 -   Rodzaj korelacji: liniowa (dodatnia lub ujemna), wykładnicza, w kształcie U, sinusoidy itp. Czyli tak naprawdę, jeśli występuje korelacja, to jaka jest zależność między zmiennymi.
 -   Łatwa identyfikacja czy są wartości odstające. Punkty, które kończą się daleko poza ogólnym skupieniem punktów, są znane jako wartości odstające.
 
-## c) Metoda kwantyl-kwantyl - **JESZCZE NIE ZMIENIONE**
+### c) Metoda kwantyl-kwantyl - DO ZMIANY
 
 Stworzono wykresy typu Q-Q dla zmiennych, dla których zidentyfikowano wartości odchylające się podczas analizy wykresami pudełkowymi
 
@@ -472,7 +479,7 @@ qqnorm(dane2$Self_Employed, pch=1, frame=FALSE, main = "Samozatrudnienie")
 qqline(dane2$Self_Employed, col="steelblue", lwd=2)
 ```
 
-## d) Odchylenia Cook'a
+#### d) Odchylenia Cook'a
 
 ```{r}
 library(broom)
