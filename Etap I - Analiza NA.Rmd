@@ -466,40 +466,32 @@ plot(a, b, xlab="Dochód wnioskodawcy", ylab="Kwota kredytu",  main="Zależnoś�
 
     Kredytu nie uzyskały osoby o niskich potrzebach, z kolei osoby o wyższych potrzebach z większą łatwością uzyskiwały kredyt.
 
-### c) Metoda kwantyl-kwantyl - DO ZMIANY
+### c) Metoda kwantyl-kwantyl
 
 Stworzono wykresy typu Q-Q dla zmiennych, dla których zidentyfikowano wartości odchylające się podczas analizy wykresami pudełkowymi
 
-```{r}
-qqnorm(dane2$ApplicantIncome, pch = 1, frame = FALSE, main = "Dochód wnioskodawcy")
-qqline(dane2$ApplicantIncome, col = "steelblue", lwd = 2)
+```{r echo=FALSE}
+layout(matrix(c(1, 2, 3, 4), nrow = 2, byrow = TRUE), heights = c(1, 1, 1))
+qqnorm(danem$ApplicantIncome, pch = 1, frame = FALSE, main = "Dochód wnioskodawcy")
+qqline(danem$ApplicantIncome, col = "steelblue", lwd = 2)
 
-qqnorm(dane2$CoapplicantIncome, pch = 1, frame = FALSE, main = "Dochód współwnioskodawcy")
-qqline(dane2$CoapplicantIncome, col = "steelblue", lwd = 2)
+qqnorm(danem$CoapplicantIncome, pch = 1, frame = FALSE, main = "Dochód współwnioskodawcy")
+qqline(danem$CoapplicantIncome, col = "steelblue", lwd = 2)
         
-qqnorm(dane2$Loan_Amount_Term, pch = 1, frame = FALSE, main = "Loan_Amount_Term")
-qqline(dane2$Loan_Amount_Term, col = "steelblue", lwd = 2)
+qqnorm(danem$Loan_Amount_Term, pch = 1, frame = FALSE, main = "Czas trwania kredytu")
+qqline(danem$Loan_Amount_Term, col = "steelblue", lwd = 2)
         
-qqnorm(dane2$LoanAmount, pch = 1, frame = FALSE, main = "Kwota kredytu")
-qqline(dane2$LoanAmount, col = "steelblue", lwd = 2)
-
-qqnorm(dane2$Gender, pch=1, frame=FALSE, main= "Płeć")
-qqline(dane2$Gender, col="steelblue", lwd=2)
-
-qqnorm(dane2$Education, pch=1, frame=FALSE, main = "Wykształcenie")
-qqline(dane2$Education, col="steelblue", lwd=2)
-
-qqnorm(dane2$Credit_History, pch=1, frame=FALSE, main = "Historia kredytu")
-qqline(dane2$Credit_History, col="steelblue", lwd=2)
-
-qqnorm(dane2$Self_Employed, pch=1, frame=FALSE, main = "Samozatrudnienie")
-qqline(dane2$Self_Employed, col="steelblue", lwd=2)
+qqnorm(danem$LoanAmount, pch = 1, frame = FALSE, main = "Kwota kredytu")
+qqline(danem$LoanAmount, col = "steelblue", lwd = 2)
 ```
+Analiza wykresów kwantyl-kwantyl pozwala na ocenienie czy dane pasują do oczekiwanego rozkładu zmiennej.
+W trzech sytuacjach występują zauważalne trendy rosnące, którym towarzyszą delikatne odchylenia powyżej lini tendencji. Jedynie na wykresie obrazującym **Czas trwania kredytu** występuje trend stały równy około 350 jednostek pieniężnych, który przyjmuje większość obserwacji.
 
 #### d) Odchylenia Cook'a
 
-```{r}
+```{r echo=FALSE}
 library(broom)
+layout(matrix(c(1, 2, 3, 4, 5, 5), nrow = 3, byrow = TRUE), heights = c(1, 1, 1))
 fit = lm(LoanAmount ~ Married,data=dane2)
 cooks.distance(fit)
 plot(fit,which=4)
@@ -520,6 +512,7 @@ fit4 = lm(LoanAmount ~ Loan_Amount_Term,data=dane2)
 cooks.distance(fit4)
 plot(fit4,which=4)
 ```
+Dystans Cooka mierzy wpływ pojedynczej obserwacji na dopasowanie modelu. Na osi Y przedstawiane są wartości Cook's Distance, a na osi X liczba obserwacji.
 
 ### 9. Wizualizacja danych
 
