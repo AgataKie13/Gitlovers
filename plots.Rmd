@@ -1,0 +1,625 @@
+---
+title: "Projekt Analiza Danych"
+author: "A. Kierznikowicz, J. Dobosz, P. Cebulska"
+date: "2024-11-20"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo= FALSE)
+```
+
+### **Informacje o firmie:**
+
+Firma zajmuje się wszystkimi kredytami mieszkaniowymi. Jest obecna na wszystkich obszarach miejskich, półmiejskich i wiejskich. Klient najpierw ubiega się o kredyt mieszkaniowy, a następnie firma sprawdza, czy klient kwalifikuje się do otrzymania pożyczki.
+
+### **Analizowany problem:**
+
+Firma chce zautomatyzować proces przyznawania pożyczki (w czasie rzeczywistym) w oparciu o dane klienta podane podczas wypełniania wniosku online. Dane te obejmują płeć, stan cywilny, wykształcenie, liczbę osób na utrzymaniu, dochód, kwotę pożyczki, historię kredytową i inne. Aby zautomatyzować ten proces, firma postawiła sobie za cel zidentyfikowanie segmentów klientów kwalifikujących się do otrzymania kwoty pożyczki i skierowanie jej właśnie do nich. W tym przypadku dostarczono częściowy zestaw danych.
+
+### **Otrzymane dane:**
+
+*Zmienna objaśniana*:
+
+-   **credit history** - wskazuje, czy dany wniskodawca uzyskał kredyt czy nie.
+
+*Zmienne objaśniające*:
+
+-   **Gender** - zawiera informacje o płci wnioskodawcy;
+-   **Married** - informuje czy wnioskodawca jest w związku małżeńskim czy nie;
+-   **Self_Employed** - informuje czy wnioskodawca jest na samozatrudnieniu;
+-   **Education** - informuje czy wnioskodawca ukończył szkołę;
+-   **Property_Area** - informuje o miejscu zamieszkania wnioskodawcy: "Rural", "Semiurban", "Urban";
+-   **Dependents** - informuje o liczbie osób na utrzymaniu;
+-   **ApplicantIncome** - informuje o dochodzie wnioskodawcy;
+-   **CoapplicantIncome** - informuje o dochodzie współwnioskodawcy;
+-   **LoanAmount** - informuje o kwocie kredytu;
+-   **Loan_Amount_Term** - informuje o czasie trwania kredytu.
+
+### **Pakiety wykorzystane w projekcie:**
+
+install.packages("rstatix") install.packages("ggcorrplot") install.packages("finalfit") install.packages("naniar") install.packages("VIM") install.packages("finalfit")\
+install.packages("validate")
+
+### 1. Wczytanie danych
+
+```{r}
+dane <- read.csv("Hipoteczny.csv")
+names(dane)
+```
+
+### 2. Porządkowanie danych
+
+W pierwszej części projektu analizujemy dane źródłowe pod kątem wystąpienia **braków danych**.
+
+#### a) Wstępne rozeznanie
+
+```{r echo=FALSE}
+head(dane)
+```
+
+#### b) Sprawdzanie braków danych
+
+```{r echo=FALSE}
+sum(is.na(dane))
+```
+
+#### c) Sprawdzanie czy są puste komórki
+
+```{r echo=FALSE}
+sum(dane == "", na.rm = TRUE)
+```
+
+#### d) zsumowanie pustych komórek i komórek NA
+
+```{r echo=FALSE}
+sum(dane == "" | is.na(dane), na.rm = TRUE)
+```
+
+Z powyższej analizy wynika, że wśród danych źródłowych znjaduje się **40** wartości oznaczonych jako NA oraz **44** zmienne puste. W związu z tym należy przekodować zmienne tak, aby w miejsce pustych komórek pojawiły się wartości NA.
+
+### 3. Przekodowanie zmiennych
+
+Na początek zmienne kategoryczne zostają przekodowane na zmienne numeryczne, aby możliwe było zbadanie koralecji pomiędzy poszczególnymi zmiennymi oraz aby zapobiec pojawianiu się pustych komórek.
+
+```{r include=FALSE}
+dane2 <- dane
+dane2$Gender <- ifelse(dane2$Gender == "Female", 0,
+                       ifelse(dane2$Gender == "Male", 1, NA))
+
+dane2$Married <- ifelse(dane2$Married == "Yes", 1, 
+                              ifelse(dane2$Married == "No", 0, NA))
+
+dane2$Self_Employed <- ifelse(dane2$Self_Employed == "Yes", 1, 
+                                  ifelse(dane2$Self_Employed == "No", 0, NA))
+
+
+dane2$Education <- ifelse(dane2$Education == "Graduate", 1, 
+                              ifelse(dane2$Education == "Not Graduate", 0, NA))
+
+
+dane2$Property_Area <- ifelse(dane2$Property_Area == "Rural", 1, 
+                                ifelse(dane2$Property_Area == "Semiurban", 2, 
+                                  ifelse(dane2$Property_Area == "Urban", 3, NA)))
+                            
+
+
+dane2$Dependents <- ifelse(dane2$Dependents == "3+", 3, 
+                                  ifelse(dane2$Dependents == "2", 2, 
+                                         ifelse(dane2$Dependents == "1", 1,
+                                                ifelse(dane2$Dependents == "0", 0, NA))))
+                           
+dane2 <- dane2[,-1]
+```
+
+**Opis przekształceń poszczególnych zmiennych kategorycznych do postaci numerycznej**
+
+-   **Gender -** zawiera informacje o płci, "Male" jest kodowana jako 1, a "Female" 0.
+-   **Married -** jest przekodowywana, aby 1 oznaczało "Yes",a 0 "No".
+-   **Self_Employed -** jest przekodowywana na 1 dla odpowiedzi "Yes", a 0 dla "No".
+-   **Education -** Wartości "Graduate" są kodowane jako 1, a "Not Graduate" jako 0
+-   **Property_Area** - zmienna zawiera trzy kategorie: "Rural", "Semiurban", "Urban". Zostały im przypisane kolejno liczby: 1, 2 i 3.
+-   **Dependents** - zmienna zawiera liczbę osób na utrzymaniu, wartość "3+" jest zamieniana na 3, a pozostałe wartości są przekodowane na liczby.
+
+#### a) Następnie sprawdzamy jak wyglądają zmienne po przekodowaniu.
+
+```{r}
+head(dane2)
+```
+
+#### b) Sprawdzanie czy są puste komórki
+
+```{r}
+sum(dane2 == "", na.rm = TRUE)
+```
+
+W wyniku przekodowania zmiennych zniwelowane zostały puste komórki, które przyjęły teraz postać NA.
+
+#### c) Sprawdzanie braków danych
+
+```{r}
+sum(is.na(dane2))
+```
+
+Ostatecznie w danych znajdują się **84** braki danych oznaczone jako NA.
+
+#### d) Sprawdzanie struktury zmiennych
+
+```{r include=FALSE}
+str(dane2)
+```
+
+Zmienne wykazują charakter liczbowy, więc nic nie trzeba zmieniać.
+
+### **4. Walidacje**
+
+**Walidacja na danych pierwotnych "dane".**
+
+```{r include=FALSE}
+library(validate)
+
+rules_dane <- validator(
+
+  # 1. Czy są typos w danych jakościowych
+  Gender %in% c("Male", "Female", ""),
+  Married %in% c("Yes", "No", ""),      
+  Education %in% c("Graduate", "Not Graduate", ""), 
+  Self_Employed %in% c("Yes", "No", ""),       
+  Property_Area %in% c("Urban", "Semiurban", "Rural", ""),
+
+  # 2. Czy w zmiennej Dependents są inne wartości niż NA, pusta kolumna, 0, 1, 2, 3+?
+  Dependents %in% c(0, 1, 2, "3+", NA),
+
+  # 3. Czy jakiegoś Loan_ID nie ma kilka razy?
+  is_unique(Loan_ID)
+)
+```
+
+Sprawdzenie czy spełnione są warunki dla danych pierwotnych "dane".
+
+```{r echo=FALSE}
+cf_dane <- confront(dane, rules_dane)
+summary(cf_dane)
+plot(cf_dane, main="Walidacja danych pierwotnych")
+
+```
+
+**Walidacja na danych przekodowanych "dane2".**
+
+```{r include=FALSE}
+
+rules_dane2 <- validator(
+
+  # 1. Czy zmienne ilościowe są większe równe 0?
+  ApplicantIncome >= 0,
+  CoapplicantIncome >= 0,
+  LoanAmount >= 0,
+  Loan_Amount_Term >= 0,
+  Credit_History >= 0,
+
+  # 2. Czy wszystkie wartości wszystkich zmiennych są większe równe 0?
+  all(is.finite(.) & . >= 0)
+
+)
+```
+
+Sprawdzenie czy dane przekodowane spełniają określone warunki.
+
+```{r echo=FALSE}
+cf_dane2 <- confront(dane2, rules_dane2)  
+summary(cf_dane2)
+barplot(cf_dane2, main="Walidacja danych po przekodowaniu")
+
+```
+
+Dane pozytywnie przeszły walidacje. Wszystkie obserwacje spełniają wyżej wymienione reguły. Ujawniono braki danych, które zostaną omówioe w następnej części raportu.
+
+### 5. Analiza braków danych
+
+#### a) Macierz korelacji poszczególnych zmiennych
+
+Następnie tworzymy macierz korelacji wszystkich zmiennych.
+
+```{r echo=TRUE}
+library(rstatix)
+korelacja <- cor_mat(dane2)
+library(ggcorrplot)
+ggcorrplot(cor(dane2))
+```
+
+Macierz korelacji przedstawia zależności pomiędzy wszystkimi zmiennymi, umożliwiając wstępną ocenę, które zmienne i w jakim stopniu są ze sobą skorelowane.
+
+#### b) Graficzna analiza braków danych
+
+Tworzymy macierz korelacji pomiędzy brakującymi zmiennymi, aby ocenić czy występują jakieś zależności w brakach danych.
+
+```{r echo=FALSE}
+library(mice)
+dane2_wykres <- dane2 
+names(dane2_wykres) <- c("G","M","D","E","SE","A","C","LA","LAT","CH","PA")
+md.pattern(dane2_wykres)
+library(naniar)
+gg_miss_fct(dane2, Credit_History)
+gg_miss_upset(dane2)
+vis_miss(dane2, cluster=TRUE, sort_miss=TRUE)
+```
+
+### 6. WNIOSKI
+
+Pierwszy z efektów analizy to **macierz wzorców braków danych**, która przedstawia unikalne wzorce braków danych dla poszczególnych zmiennych. Komórki z brakami są zaznaczone w tabeli na różowo, co pozwala zrozumieć, które zmienne i jak często mają braki. Pierwszy wiersz (289 obserwacji) nie ma żadnych braków danych. Oznacza to, że większość danych jest kompletna. Natomiast W pozostałych wierszach widzimy różne wzorce braków. Na przykład w drugim wierszu 25 obserwacji ma braki w zmiennej CH. Z kolei zmienna CH ma 29 braków.
+
+Drugi wynikiem jest **wykres słupkowy braków danych względem kategorii**, który przedstawia procent braków danych w każdej kolumnie. Następnie sporządzony został **diagram UpSet dla brakujących danych**, który podobnie jak macierz, przedstawia ilość braków w zależności od kolumny.
+
+Na koniec zbudowano **mapę cieni**, która przedstawia procentowy udział braków danych w całości analizowanych danych. W analizowanym przypadku braki danych stanowią 2,1% zmiennych, z czego największy udział mają braki w kolumnie Credit_History (8%), a najmniejszy - LoanAmount (1%).
+
+### Test statystyczny braków danych
+
+```{r}
+mcar_test(dane2)
+```
+
+Hipoteza zerowa testu: Braki danych są MCAR (całkowicie losowe). Hipoteza alternatywna testu: Braki danych nie są MCAR.
+
+*Wartość p (0.9918873) jest znacznie większa niż próg istotności (0.05)*, więc nie ma podstaw do odrzucenia hipotezy zerowej. Oznacza to, że braki w analizowanych danych są całkowicie losowe i nie zależą od wartości innych zmiennych ani samych brakujących danych. Co więcej, istnienie *12 wzorców braków danych* sugeruje, że różne obserwacje mają różne kombinacje braków.
+
+Ponadto obserwowany niski poziom korelacji pomiędzy zmiennymi oraz analiza powyższych wykresów wskazuje na to, że braki danych należy skategoryzować jako MCAR (Całkowicie losowe braki danych).
+
+#### 7. Imputacja brakujących danych - *Wielowymiarowe wypełnianie braków danych przez równania łańcuchowe*
+
+Do imputacji braków w danych użyto pakietu **mice** (Multivariate Imputation by Chained Equations), stosując metodę **pmm** (Predictive Mean Matching), która wypełniała braki na podstawie podobnych obserwacji z danych.
+
+```{r include=FALSE}
+library(mice)
+danem <- dane2
+Gender_imputed <- mice(danem[, c("Gender", "Married", "Dependents", "Education", "Self_Employed", 
+                                "ApplicantIncome", "CoapplicantIncome", "LoanAmount", 
+                                "Loan_Amount_Term", "Credit_History", "Property_Area")], 
+                       m = 5, method = "pmm")
+
+danem$Gender <- complete(Gender_imputed)$Gender
+```
+
+Zimputowane zostały brakujące obserwacje w zmiennej **Gender**, a następnie uzupełniono brakujące wartości w zbiorze danych.
+
+Proces ten został powtórzony dla pozostałych zmiennych
+
+**zmienna Dependents**
+
+```{r include=FALSE}
+Dependents_imputed <- mice(danem[, c("Dependents", "Gender", "Married", "Education", "Self_Employed", 
+                                    "ApplicantIncome", "CoapplicantIncome", "LoanAmount", 
+                                    "Loan_Amount_Term", "Credit_History", "Property_Area")], 
+                           m = 5, method = "pmm")
+
+danem$Dependents <- complete(Dependents_imputed)$Dependents
+```
+
+**zmienna Self_Employed**
+
+```{r include=FALSE}
+Self_Employed_imputed <- mice(danem[, c("Self_Employed", "Gender", "Married", "Dependents", 
+                                       "Education", "ApplicantIncome", "CoapplicantIncome", 
+                                       "LoanAmount", "Loan_Amount_Term", "Credit_History", "Property_Area")], 
+                              m = 5, method = "pmm")
+
+danem$Self_Employed <- complete(Self_Employed_imputed)$Self_Employed
+```
+
+**zmienna LoanAmount**
+
+```{r include=FALSE}
+LoanAmount_imputed <- mice(danem[, c("LoanAmount", "Gender", "Married", "Dependents", 
+                                    "Education", "Self_Employed", "ApplicantIncome", 
+                                    "CoapplicantIncome", "Loan_Amount_Term", "Credit_History", "Property_Area")], 
+                           m = 5, method = "pmm")
+
+danem$LoanAmount <- complete(LoanAmount_imputed)$LoanAmount
+```
+
+**zmienna Loan_Amount_Term**
+
+```{r include=FALSE}
+Loan_Amount_Term_imputed <- mice(danem[, c("Loan_Amount_Term", "Gender", "Married", "Dependents", 
+                                          "Education", "Self_Employed", "ApplicantIncome", 
+                                          "CoapplicantIncome", "LoanAmount", "Credit_History", "Property_Area")], 
+                                 m = 5, method = "pmm")
+
+danem$Loan_Amount_Term <- complete(Loan_Amount_Term_imputed)$Loan_Amount_Term
+```
+
+**zmienna Credit_History**
+
+```{r include=FALSE}
+Credit_History_imputed <- mice(danem[, c("Credit_History", "Gender", "Married", "Dependents", 
+                                        "Education", "Self_Employed", "ApplicantIncome", 
+                                        "CoapplicantIncome", "LoanAmount", "Loan_Amount_Term", "Property_Area")], 
+                               m = 5, method = "pmm")
+
+danem$Credit_History <- complete(Credit_History_imputed)$Credit_History
+```
+
+Proces został wykonany dla każdej zmiennej z brakami (Gender, Dependents, Self_Employed, LoanAmount, Loan_Amount_Term, Credit_History) i polegał na imputacji tych braków w konkretnej zmiennej na podstawie podobnych obserwacji z danych.
+
+Sprawdzenie czy wszystkie braki zostały uzupełnione.
+
+```{r}
+sum(is.na(danem))
+```
+
+#### **PORÓWNANIE STATYSTYK PRZED I PO UŻYCIU METODY IMPUTACJI DANYCH**
+
+```{r}
+srednia <- (sapply(dane2,mean, na.rm = TRUE))
+mediana <- (sapply(dane2,median, na.rm = TRUE))
+minimum <- (sapply(dane2,min, na.rm = TRUE))
+maximum <- (sapply(dane2,max, na.rm = TRUE))
+kwantyl1 <- (sapply(dane2,quantile, na.rm = TRUE, probs = 0.25))
+kwantyl3 <- (sapply(dane2,quantile, na.rm = TRUE, probs = 0.75))
+
+sredniam <- (sapply(danem,mean, na.rm = TRUE))
+medianam <- (sapply(danem,median, na.rm = TRUE))
+minimumm <- (sapply(danem,min, na.rm = TRUE))
+maximumm <- (sapply(danem,max, na.rm = TRUE))
+kwantyl1m <- (sapply(danem,quantile, na.rm = TRUE, probs = 0.25))
+kwantyl3m <- (sapply(danem,quantile, na.rm = TRUE, probs = 0.75))
+
+srednia_all <- data.frame(srednia, sredniam)
+srednia_all <- t(srednia_all)
+mediana_all <- data.frame(mediana, medianam)
+mediana_all <- t(mediana_all)
+minimum_all <- data.frame(minimum, minimumm)
+minimum_all <- t(minimum_all)
+maximum_all <- data.frame(maximum, maximumm)
+maximum_all <- t(maximum_all)
+kwantyl1_all <- data.frame(kwantyl1, kwantyl1m)
+kwantyl1_all <- t(kwantyl1_all)
+kwantyl3_all <- data.frame(kwantyl3, kwantyl3m)
+kwantyl3_all <- t(kwantyl3_all)
+statystyki_all <- rbind(srednia_all, mediana_all, minimum_all, maximum_all, kwantyl1_all, kwantyl3_all)
+statystyki_all
+```
+
+### 8. Analiza odchyleń danych po imputacji
+
+#### a) Obserwacje odstające - jednowymiarowe - Boxplot
+
+```{r}
+boxplot((danem), main = "Analiza odchyleń")
+
+layout(matrix(c(1, 2, 3, 4, 5, 5), nrow = 3, byrow = TRUE), heights = c(1, 1, 0.5))
+
+boxplot(danem$ApplicantIncome, danem$CoapplicantIncome, 
+        names = c("AppIncome", "coappIncome"), main = "Dochód wnioskodawców")
+boxplot(danem$Loan_Amount_Term, danem$LoanAmount, 
+        names = c("LoanAmountT", "LoanAmount"), main = "Cechy kredytu")
+boxplot(danem$Gender, danem$Education, danem$Credit_History, 
+        danem$Self_Employed, 
+        names = c("Płeć", "W", "HK", "SZ"), main = "Cechy personalne")
+boxplot(danem$Married, danem$Dependents, danem$Property_Area, 
+        names = c("SC", "LOU", "Property"), main = "Cechy personalne - bez odchyleń")
+
+par(mar = c(0, 0, 0, 0))
+plot.new()
+legend("center",
+       legend = c(
+         "AppIncome = Dochód wnioskodawcy", 
+         "CoappIncome = Dochód współwnioskodawcy",
+         "W = Wykształcenie", 
+         "HK = Historia Kredytowa", 
+         "SZ = Samozatrudnienie",
+         "SC = Stan cywilny", 
+         "LOU = L. osób na utrzymaniu"),
+       cex = 1,
+       bty = "n")
+```
+
+Z analizy wykresów pudełkowych wynika, że najbardziej odchylającymi się zmiennymi jest **ApplicantIncome** oraz **CoapplicantIncome**. Ponadto zauważalne różnice występują dla zmiennych **LoanAmount** i **LoanAmountT**. Pozostałe zmienne nie wykazują znaczących odchyleń.
+
+### b) Obserwacje odstające - wielowymiarowe - Scatterplot
+
+```{r}
+ggcorrplot(cor(danem))
+
+x <- danem$ApplicantIncome
+y <- danem$CoapplicantIncome
+plot(x, y, xlab="Dochód wnioskodawcy", ylab="Dochód współwnioskodawcy", main="Zależność między dochodem wnioskodawcy a współwnioskodawcy")
+
+a <- danem$Credit_History
+b <- danem$ApplicantIncome
+plot(a, b, xlab="Historia kredytowa", ylab="Dochód wnioskodawcy", main="Zależność między historią kredytową a dochodem wnioskodawcy")
+
+a <- danem$Credit_History
+b <- danem$CoapplicantIncome
+plot(a, b, xlab="Historia kredytowa", ylab="Dochód współwnioskodawcy", main="Zależność między historią kredytową a dochodem współwnioskodawcy")
+
+a <- danem$Credit_History
+b <- danem$LoanAmount
+plot(a, b, xlab="Historia kredytowa", ylab="Kwota kredytu", main="Zależność między historią kredytową a kwotą kredytu")
+
+a <- danem$ApplicantIncome
+b <- danem$LoanAmount
+plot(a, b, xlab="Dochód wnioskodawcy", ylab="Kwota kredytu",  main="Zależność między dochodem wnioskodawcy a kwotą kredytu")
+```
+
+*Interpretacja wyników*
+
+1.  **Zależność między dochodem wnioskodawcy a współwnioskodawcy**\
+    Z macierzy korelacji wynika, że pomiędzy zmienną **AplicantIncome** a **CoapplicantIncome** występuje zauważalna relacja ujemna. W związku z tym zbudowano [**wykres punktowy**]{.underline} przedstawiający zależność między dochodem wnioskodawcy a współwnioskodawcy pozwala określić ich udział w generowaniu dochodu. Z analizy wykresu wynika, że zazwyczaj to dochody głównego wnioskodawcy są dominującym składnikiem całkowitego dochodu. Ponadto większość par wnioskodawców osiąga niewysokie dochody, co może wskazywać na niski status dochodowy aplikujących gospodarstw domowych. Zauważalne wartości ekstremalne reprezentują bardzo wysokie dochody wnioskodawców, dla których dochody współwnioskodawców pozostają na niskim poziomie. Wykres nie wskazuje na występowanie bezpośredniej korelacji między zmiennymi. Większość wartości współistnieje na niskim poziomie, lecz nie obserwuje się wyraźnego wzorca.
+
+2.  **Zależność między dochodem wnioskodawcy a kwotą kredytu**
+
+    Zbudowany wykres pokazuje, że większość wnioskodawców ma niskie dochody i ubiega się o kredyty w przedziale 100–300 jednostek pieniężnych. Przy wyższych dochodach kwoty kredytu są bardziej zróżnicowane, lecz nie występuje wyraźna korelacja między dochodem a kwotą kredytu. Obserwuje się również kilka punktów odstających z bardzo wysokimi dochodami i kwotami kredytu.
+
+3.  Zależność zmiennej objaśnianej **historia kredytowa** względem istotnych zmiennych objaśniających
+
+    Zmienna objaśniana ma charakter zmiennej binarnej, w związku z czym wartości dla zmiennej objaśniającej na osi OX znajdują się jedynie przy 0 i 1.
+
+-   [Zależność między historią kredytową a dochodem wnioskodawcy]{.underline}
+
+    Osoby, które nie otrzymały kredytu charakteryzują się niskimi dochodami. Z kolei wśród osób, którym przyznano finansowanie znajdują się osoby o różnym dochododzie - od najniższego do bardzo wysokiego (\> 60.000 jendostek pieniężnych). Taka zależność może wskazywać na fakt, że ta grupa ma większe możliwości finansowe lub łatwiejszy dostęp do kredytów.
+
+-   [Zależność między historią kredytową a dochodem współwnioskodawcy]{.underline}
+
+    Dochód współwnioskodawców jest o wiele niższy od wnioskodawców, lecz zależność względem historii kredytowej jest bardzo podobna. Jedyną anomalią jest pojedyncza wysoka wartość dochodu współwnioskodawcy dla osoby, która nie uzyskała kredytu.
+
+-   [Zależność między historią kredytową a kwotą kredytu]{.underline}
+
+    Kredytu nie uzyskały osoby o niskich potrzebach, z kolei osoby o wyższych potrzebach z większą łatwością uzyskiwały kredyt.
+
+### c) Metoda kwantyl-kwantyl
+
+Stworzono wykresy typu Q-Q dla zmiennych, dla których zidentyfikowano wartości odchylające się podczas analizy wykresami pudełkowymi
+
+```{r echo=FALSE}
+layout(matrix(c(1, 2, 3, 4), nrow = 2, byrow = TRUE), heights = c(1, 1, 1))
+qqnorm(danem$ApplicantIncome, pch = 1, frame = FALSE, main = "Dochód wnioskodawcy")
+qqline(danem$ApplicantIncome, col = "steelblue", lwd = 2)
+
+qqnorm(danem$CoapplicantIncome, pch = 1, frame = FALSE, main = "Dochód współwnioskodawcy")
+qqline(danem$CoapplicantIncome, col = "steelblue", lwd = 2)
+        
+qqnorm(danem$Loan_Amount_Term, pch = 1, frame = FALSE, main = "Czas trwania kredytu")
+qqline(danem$Loan_Amount_Term, col = "steelblue", lwd = 2)
+        
+qqnorm(danem$LoanAmount, pch = 1, frame = FALSE, main = "Kwota kredytu")
+qqline(danem$LoanAmount, col = "steelblue", lwd = 2)
+```
+
+Analiza wykresów kwantyl-kwantyl pozwala na ocenienie czy dane pasują do oczekiwanego rozkładu zmiennej. W trzech sytuacjach występują zauważalne trendy rosnące, którym towarzyszą delikatne odchylenia powyżej lini tendencji. Jedynie na wykresie obrazującym **Czas trwania kredytu** występuje trend stały równy około 350 jednostek pieniężnych, który przyjmuje większość obserwacji.
+
+#### d) Odchylenia Cook'a
+
+```{r echo=FALSE}
+library(broom)
+layout(matrix(c(1, 2), nrow = TRUE, byrow = 2), heights = c(1, 1, 1))
+fit = lm(LoanAmount ~ ApplicantIncome,data=dane2)
+cooks.distance(fit3)
+plot(fit3,which=4, main="Kwota kredytu vs Dochód wnioskodawcy")
+
+fit1 = lm(LoanAmount ~ Loan_Amount_Term,data=dane2)
+cooks.distance(fit4)
+plot(fit4,which=4, main="Kwota kredytu vs Czas trwania")
+
+fit2 = lm(LoanAmount ~ Married,data=dane2)
+cooks.distance(fit)
+plot(fit,which=4, main="Kwota kredytu vs Stan cywilny")
+
+fit3 = lm(LoanAmount ~ Gender,data=dane2)
+cooks.distance(fit1)
+plot(fit1,which=4, main="Kwota kredytu vs Płeć")
+
+layout(matrix(c(1), nrow = TRUE, byrow = 1), heights = c(1, 1, 1))
+
+fit4 = lm(LoanAmount ~ Education,data=dane2)
+cooks.distance(fit2)
+plot(fit2,which=4, main="Kwota kredytu vs Wykształcenie")
+
+```
+
+Dystans Cooka mierzy wpływ pojedynczej obserwacji na dopasowanie modelu. Na osi Y przedstawiane są wartości Cook's Distance, a na osi X liczba obserwacji.\
+Dla wykresu **Kwota kredytu vs Dochód wnioskodawcy** Dystans Cooka jest większy od 1, co oznacza, że taki punkt może być uznawany za odstający. W pozostałych pryzpadkach wartości wskaźnika są mniejsze od 1.\
+Punkty znajdujące się blisko OX mają niewielki wpływ na na model, dzięki czemu można uznać je za normalne. Na każdym wykresie znajduje się kilka istotnie wykraczających wartości, które pozostały po przeprowadzonej walidacji i analizie braków danych.
+
+### 9. Wizualizacja danych
+
+Zamiana danych na jakościowe, aby ułatwić wizualizację.
+
+```{r include=FALSE}
+danej <- danem
+danej$Gender <- ifelse(danej$Gender == 0, "Female", "Male")
+
+danej$Married <- ifelse(danej$Married == 1, "Yes" , "No")
+
+danej$Self_Employed <- ifelse(danej$Self_Employed == 1, "Yes", "No")
+
+
+danej$Education <- ifelse(danej$Education == 1, "Graduate", "Not Graduate")
+
+
+danej$Property_Area <- ifelse(danej$Property_Area == 1, "Rural", 
+                              ifelse(danej$Property_Area == 2, "Semiurban", "Urban"))
+
+
+
+danej$Dependents <- ifelse(danej$Dependents == 3, "3+", 
+                           ifelse(danej$Dependents == 2, "2", 
+                                  ifelse(danej$Dependents == 1, "1","0")))
+summary.data.frame(danej)
+```
+
+### 10. Wykresy
+
+1.  Wykres kolumnowy ukazujący historię kredytową w zależności od stanu cywilnego.
+
+```{r}
+library(tidyverse)
+
+ggplot(danej, aes(x = Married, fill = factor(Credit_History))) +
+  geom_bar(position = "dodge") +
+  xlab("Stan cywilny") +
+  ylab("Liczba osób") +
+  scale_fill_manual(name = "Historia kredytowa",
+                    values = c("0" = "red", "1" = "green"),
+                    labels = c("Nie przyznano", "Przyznano")) +
+  ggtitle("Historia kredytowa w zależności od stanu cywilnego") +
+  theme_light()
+```
+
+Wykres pokazuje, że osoby w związku małżeńskim częściej otrzymują kredyt niż osoby niezamężne. Liczba odmów jest stosunkowo niska w obu grupach.
+
+2.  Wykres punktowy przedstawiający zależność między dochodami aplikanta i współaplikanta, z podziałem na historię kredytową („Przyznano” i „Nie przyznano”).
+
+```{r}
+ggplot(danej, aes(x = ApplicantIncome, 
+                 y = CoapplicantIncome, 
+                 color = factor(Credit_History))) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE) +
+  xlab("Dochód aplikanta") +
+  ylab("Dochód współaplikanta") +
+  scale_color_discrete(name = "Historia kredytowa",
+                       labels = c("Nie przyznano", "Przyznano")) +
+  ggtitle("Dochody a historia kredytowa") +
+  theme_light()
+```
+
+Czerwona linia regresji "Nie przyznano" wykazuje się tendencją malejącą — wyższe dochody aplikanta wiążą się z niższymi dochodami współaplikanta, gdy kredyt nie został przyznany.
+
+Linia regresji "Przyznano" jest mniej stroma, co sugeruje słabszą zależność między dochodami aplikanta a współaplikanta w przypadku przyznania kredytu.
+
+3.  Wykres punktowy ukazujący zależność między historią kredytową a kwotą kredytu oraz okresem kredytowania.
+
+```{r}
+ggplot(danej, aes(x = LoanAmount, 
+                 y = Loan_Amount_Term, 
+                 color = factor(Credit_History))) +
+  geom_point() +
+  xlab("Kwota kredytu") +
+  ylab("Okres kredytu (miesiące)") +
+  scale_color_discrete(name = "Historia kredytowa",
+                       labels = c("Nie przyznano", "Przyznano")) +
+  ggtitle("Kwota kredytu a okres kredytu w zależności od historii kredytowej") +
+  theme_light()
+```
+
+Kredyty, które zostały przyznane są rozproszone w zakresie zarówno kwot kredytów, jak i okresu spłaty, natomiast większość przyznanych kredytów jest objęta dłuższym okresem spłaty.
+
+Kredyty, które zostały odrzucone są bardziej skupione w określonych przedziałach kwoty i okresu.
+
+4.  Wykres pudełkowy przedstawia zależność między dochodami aplikantów a ich historią kredytową (przyznanie lub nieprzyznanie kredytu).
+
+```{r}
+ggplot(danej, aes(x = factor(Credit_History), 
+                 y = ApplicantIncome, 
+                 fill = factor(Credit_History))) +
+  geom_boxplot() +
+  xlab("Historia kredytowa") +
+  ylab("Dochód aplikanta") +
+  scale_fill_manual(name = "Historia kredytowa",
+                    values = c("0" = "orange", "1" = "blue"),
+                    labels = c("Nie przyznano", "Przyznano")) +
+  ggtitle("Rozkład dochodów aplikantów w zależności od historii kredytowej") +
+  theme_light()
+```
+
+Wykres pokazuje, że osoby z wyższymi dochodami mają większe szanse na przyznanie kredytu, co widać po wyższej medianie i większej różnorodności dochodów w tej grupie. W grupie, której odmówiono kredytu, dochody są na ogół niższe, choć zdarzają się wyjątki z wyższymi dochodami. Oznacza to, że dochód jest istotnym, ale nie jedynym czynnikiem wpływającym na decyzję kredytową.
