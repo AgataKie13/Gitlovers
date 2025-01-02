@@ -526,23 +526,25 @@ Zamiana danych na jakościowe, aby ułatwić wizualizację.
 
 ```{r include=FALSE}
 danej <- danem
-danej$Gender <- ifelse(danej$Gender == 0, "Female", "Male")
+danej$Gender <- ifelse(danej$Gender == 0, "Kobieta", "Mezczyzna")
 
-danej$Married <- ifelse(danej$Married == 1, "Yes" , "No")
+danej$Married <- ifelse(danej$Married == 1, "Tak" , "Nie")
 
-danej$Self_Employed <- ifelse(danej$Self_Employed == 1, "Yes", "No")
-
-
-danej$Education <- ifelse(danej$Education == 1, "Graduate", "Not Graduate")
+danej$Self_Employed <- ifelse(danej$Self_Employed == 1, "Tak", "Nie")
 
 
-danej$Property_Area <- ifelse(danej$Property_Area == 1, "Rural", 
-                              ifelse(danej$Property_Area == 2, "Semiurban", "Urban"))
+danej$Education <- ifelse(danej$Education == 1, "Studia", "Bez studiów")
+
+
+danej$Property_Area <- ifelse(danej$Property_Area == 1, "Wiejski", 
+                              ifelse(danej$Property_Area == 2, "Polmiejski", "Miejski"))
 
 
 
 danej$Dependents <- ifelse(danej$Dependents == 3, "3+", 
                            ifelse(danej$Dependents == 2, "2", 
                                   ifelse(danej$Dependents == 1, "1","0")))
+
+names(danej) <- c("Plec", "W_zwiazku_malzenskim", "Osoby_na_utrzymaniu", "Edukacja", "Samozatrudnienie", "Dochód_aplikanta", "Dochod_wspolaplikanta", "Wysokosc_kredytu", "Okres_kredytu", "Historia_kredytowa", "Obszar_zamieszkania")
 summary.data.frame(danej)
 ```
