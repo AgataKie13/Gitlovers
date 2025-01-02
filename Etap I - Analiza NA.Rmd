@@ -548,3 +548,35 @@ danej$Dependents <- ifelse(danej$Dependents == 3, "3+",
 names(danej) <- c("Plec", "W_zwiazku_malzenskim", "Osoby_na_utrzymaniu", "Edukacja", "Samozatrudnienie", "Dochód_aplikanta", "Dochod_wspolaplikanta", "Wysokosc_kredytu", "Okres_kredytu", "Historia_kredytowa", "Obszar_zamieszkania")
 summary.data.frame(danej)
 ```
+
+
+```{r}
+library(webr)
+onuk <- danej %>% 
+  count(Osoby_na_utrzymaniu, Historia_kredytowa) 
+
+PieDonut(data = onuk, aes(Historia_kredytowa, count = n))
+
+PieDonut(data = onuk, aes(Osoby_na_utrzymaniu, Historia_kredytowa, count = n))
+
+ggplot(danej, aes(Plec, fill = Historia_kredytowa, group = Historia_kredytowa)) +
+  geom_bar() +
+  scale_fill_brewer(palette = "Pastel1")
+
+ggplot(danej, aes(x = Edukacja, y = Samozatrudnienie, color = Historia_kredytowa)) +
+  geom_point(position = "jitter") +
+  coord_flip() 
+
+ggplot(danej, aes(x = Obszar_zamieszkania, y = Wysokosc_kredytu, color = Historia_kredytowa)) +
+  geom_point(position = "jitter") +
+  scale_fill_brewer(palette = "Pastel1") 
+  
+```
+
+
+
+
+
+
+
+
