@@ -539,7 +539,7 @@ danej$Education <- ifelse(danej$Education == 1, "Studia", "Bez studiów")
 danej$Property_Area <- ifelse(danej$Property_Area == 1, "Wiejski", 
                               ifelse(danej$Property_Area == 2, "Polmiejski", "Miejski"))
 
-
+danej$Credit_History <- ifelse(danej$Credit_History == 1, "Tak", "Nie")
 
 danej$Dependents <- ifelse(danej$Dependents == 3, "3+", 
                            ifelse(danej$Dependents == 2, "2", 
