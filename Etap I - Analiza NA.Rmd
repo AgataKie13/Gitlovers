@@ -551,6 +551,8 @@ summary.data.frame(danej)
 
 
 ```{r}
+library(plotly)
+library(dplyr)
 library(webr)
 onuk <- danej %>% 
   count(Osoby_na_utrzymaniu, Historia_kredytowa) 
