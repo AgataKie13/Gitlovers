@@ -573,3 +573,79 @@ ggplot(danej, aes(x = Obszar_zamieszkania, y = Wysokosc_kredytu, color = Histori
   scale_fill_brewer(palette = "Pastel1") 
   
 ```
+### 10. Wykresy
+
+1.  Wykres kolumnowy ukazujący historię kredytową w zależności od stanu cywilnego.
+
+```{r}
+library(tidyverse)
+
+ggplot(danej, aes(x = Married, fill = factor(Credit_History))) +
+  geom_bar(position = "dodge") +
+  xlab("Stan cywilny") +
+  ylab("Liczba osób") +
+  scale_fill_manual(name = "Historia kredytowa",
+                    values = c("0" = "red", "1" = "green"),
+                    labels = c("Nie przyznano", "Przyznano")) +
+  ggtitle("Historia kredytowa w zależności od stanu cywilnego") +
+  theme_light()
+```
+
+Wykres pokazuje, że osoby w związku małżeńskim częściej otrzymują kredyt niż osoby niezamężne. Liczba odmów jest stosunkowo niska w obu grupach.
+
+2.  Wykres punktowy przedstawiający zależność między dochodami aplikanta i współaplikanta, z podziałem na historię kredytową („Przyznano” i „Nie przyznano”).
+
+```{r}
+ggplot(danej, aes(x = ApplicantIncome, 
+                 y = CoapplicantIncome, 
+                 color = factor(Credit_History))) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE) +
+  xlab("Dochód aplikanta") +
+  ylab("Dochód współaplikanta") +
+  scale_color_discrete(name = "Historia kredytowa",
+                       labels = c("Nie przyznano", "Przyznano")) +
+  ggtitle("Dochody a historia kredytowa") +
+  theme_light()
+```
+
+Czerwona linia regresji "Nie przyznano" wykazuje się tendencją malejącą — wyższe dochody aplikanta wiążą się z niższymi dochodami współaplikanta, gdy kredyt nie został przyznany.
+
+Linia regresji "Przyznano" jest mniej stroma, co sugeruje słabszą zależność między dochodami aplikanta a współaplikanta w przypadku przyznania kredytu.
+
+3.  Wykres punktowy ukazujący zależność między historią kredytową a kwotą kredytu oraz okresem kredytowania.
+
+```{r}
+ggplot(danej, aes(x = LoanAmount, 
+                 y = Loan_Amount_Term, 
+                 color = factor(Credit_History))) +
+  geom_point() +
+  xlab("Kwota kredytu") +
+  ylab("Okres kredytu (miesiące)") +
+  scale_color_discrete(name = "Historia kredytowa",
+                       labels = c("Nie przyznano", "Przyznano")) +
+  ggtitle("Kwota kredytu a okres kredytu w zależności od historii kredytowej") +
+  theme_light()
+```
+
+Kredyty, które zostały przyznane są rozproszone w zakresie zarówno kwot kredytów, jak i okresu spłaty, natomiast większość przyznanych kredytów jest objęta dłuższym okresem spłaty.
+
+Kredyty, które zostały odrzucone są bardziej skupione w określonych przedziałach kwoty i okresu.
+
+4.  Wykres pudełkowy przedstawia zależność między dochodami aplikantów a ich historią kredytową (przyznanie lub nieprzyznanie kredytu).
+
+```{r}
+ggplot(danej, aes(x = factor(Credit_History), 
+                 y = ApplicantIncome, 
+                 fill = factor(Credit_History))) +
+  geom_boxplot() +
+  xlab("Historia kredytowa") +
+  ylab("Dochód aplikanta") +
+  scale_fill_manual(name = "Historia kredytowa",
+                    values = c("0" = "orange", "1" = "blue"),
+                    labels = c("Nie przyznano", "Przyznano")) +
+  ggtitle("Rozkład dochodów aplikantów w zależności od historii kredytowej") +
+  theme_light()
+```
+
+Wykres pokazuje, że osoby z wyższymi dochodami mają większe szanse na przyznanie kredytu, co widać po wyższej medianie i większej różnorodności dochodów w tej grupie. W grupie, której odmówiono kredytu, dochody są na ogół niższe, choć zdarzają się wyjątki z wyższymi dochodami. Oznacza to, że dochód jest istotnym, ale nie jedynym czynnikiem wpływającym na decyzję kredytową.
