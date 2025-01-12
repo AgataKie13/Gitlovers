@@ -40,6 +40,7 @@ Firma chce zautomatyzować proces przyznawania pożyczki (w czasie rzeczywistym)
 
 install.packages("rstatix") install.packages("ggcorrplot") install.packages("finalfit") install.packages("naniar") install.packages("VIM") install.packages("finalfit")\
 install.packages("validate") install.packages("plotly") install.packages("webr")
+install.packages("gtsummary")
 
 ### 1. Wczytanie danych
 
@@ -348,35 +349,38 @@ sum(is.na(danem))
 
 #### **PORÓWNANIE STATYSTYK PRZED I PO UŻYCIU METODY IMPUTACJI DANYCH**
 
-```{r}
-srednia <- (sapply(dane2,mean, na.rm = TRUE))
-mediana <- (sapply(dane2,median, na.rm = TRUE))
-minimum <- (sapply(dane2,min, na.rm = TRUE))
-maximum <- (sapply(dane2,max, na.rm = TRUE))
-kwantyl1 <- (sapply(dane2,quantile, na.rm = TRUE, probs = 0.25))
-kwantyl3 <- (sapply(dane2,quantile, na.rm = TRUE, probs = 0.75))
+```{r echo=FALSE}
+library(gtsummary)
 
-sredniam <- (sapply(danem,mean, na.rm = TRUE))
-medianam <- (sapply(danem,median, na.rm = TRUE))
-minimumm <- (sapply(danem,min, na.rm = TRUE))
-maximumm <- (sapply(danem,max, na.rm = TRUE))
-kwantyl1m <- (sapply(danem,quantile, na.rm = TRUE, probs = 0.25))
-kwantyl3m <- (sapply(danem,quantile, na.rm = TRUE, probs = 0.75))
+dane2 %>%
+  tbl_summary(
+    by = Credit_History,
+    statistic = list(
+      all_continuous() ~ "{mean}, {p25}, {p50}, {p75}, {min}, {max}",  
+      all_categorical() ~ "{n} ({p}%)"                           
+    )
+  ) %>%
+  modify_caption("**Tabela 1. Statystyki opisowe według historii kredytowej przed imputacją**") %>%
+  modify_footnote(
+    all_stat_cols() ~ "Zmienne ciągłe: średnia, kwantyl 1, mediana, kwantyl 3, minimum, maksimum; zmienne kategoryczne: liczność (%); Brakujące dane zostały wykluczone z analizy."
+  ) %>%
+  add_p()
 
-srednia_all <- data.frame(srednia, sredniam)
-srednia_all <- t(srednia_all)
-mediana_all <- data.frame(mediana, medianam)
-mediana_all <- t(mediana_all)
-minimum_all <- data.frame(minimum, minimumm)
-minimum_all <- t(minimum_all)
-maximum_all <- data.frame(maximum, maximumm)
-maximum_all <- t(maximum_all)
-kwantyl1_all <- data.frame(kwantyl1, kwantyl1m)
-kwantyl1_all <- t(kwantyl1_all)
-kwantyl3_all <- data.frame(kwantyl3, kwantyl3m)
-kwantyl3_all <- t(kwantyl3_all)
-statystyki_all <- rbind(srednia_all, mediana_all, minimum_all, maximum_all, kwantyl1_all, kwantyl3_all)
-statystyki_all
+
+danem %>%
+  tbl_summary(
+    by = Credit_History,
+    statistic = list(
+      all_continuous() ~ "{mean}, {p25}, {p50}, {p75}, {min}, {max}",
+      all_categorical() ~ "{n} ({p}%)"
+    )
+  ) %>%
+  modify_caption("**Tabela 1. Statystyki opisowe według historii kredytowej po imputacji**") %>%
+  modify_footnote(
+    all_stat_cols() ~ "Zmienne ciągłe: średnia, kwantyl 1, mediana, kwantyl 3, minimum, maksimum; zmienne kategoryczne: liczność (%)."
+  ) %>%
+  add_p() 
+
 ```
 
 ### 8. Analiza odchyleń danych po imputacji
@@ -417,7 +421,8 @@ Z analizy wykresów pudełkowych wynika, że najbardziej odchylającymi się zmi
 
 ### b) Obserwacje odstające - wielowymiarowe - Scatterplot
 
-```{r}
+```{r echo=FALSE}
+library(ggcorrplot)
 ggcorrplot(cor(danem))
 
 x <- danem$ApplicantIncome
@@ -549,7 +554,7 @@ names(danej) <- c("Plec", "W_zwiazku_malzenskim", "Osoby_na_utrzymaniu", "Edukac
 summary.data.frame(danej)
 ```
 
-```{r}
+```{r echo=FALSE}
 library(plotly)
 library(dplyr)
 library(webr)
@@ -577,10 +582,10 @@ ggplot(danej, aes(x = Obszar_zamieszkania, y = Wysokosc_kredytu, color = Histori
 
 1.  Wykres kolumnowy ukazujący historię kredytową w zależności od stanu cywilnego.
 
-```{r}
+```{r echo=FALSE}
 library(tidyverse)
 
-ggplot(danej, aes(x = Married, fill = factor(Credit_History))) +
+ggplot(danej, aes(x = W_zwiazku_malzenskim, fill = factor(Historia_kredytowa))) +
   geom_bar(position = "dodge") +
   xlab("Stan cywilny") +
   ylab("Liczba osób") +
@@ -595,10 +600,10 @@ Wykres pokazuje, że osoby w związku małżeńskim częściej otrzymują kredyt
 
 2.  Wykres punktowy przedstawiający zależność między dochodami aplikanta i współaplikanta, z podziałem na historię kredytową („Przyznano” i „Nie przyznano”).
 
-```{r}
-ggplot(danej, aes(x = ApplicantIncome, 
-                 y = CoapplicantIncome, 
-                 color = factor(Credit_History))) +
+```{r echo=FALSE}
+ggplot(danej, aes(x = Dochód_aplikanta, 
+                 y = Dochod_wspolaplikanta, 
+                 color = factor(Historia_kredytowa))) +
   geom_point() +
   geom_smooth(method = "lm", se = FALSE) +
   xlab("Dochód aplikanta") +
@@ -615,10 +620,10 @@ Linia regresji "Przyznano" jest mniej stroma, co sugeruje słabszą zależność
 
 3.  Wykres punktowy ukazujący zależność między historią kredytową a kwotą kredytu oraz okresem kredytowania.
 
-```{r}
-ggplot(danej, aes(x = LoanAmount, 
-                 y = Loan_Amount_Term, 
-                 color = factor(Credit_History))) +
+```{r echo=FALSE}
+ggplot(danej, aes(x = Wysokosc_kredytu, 
+                 y = Okres_kredytu, 
+                 color = factor(Historia_kredytowa))) +
   geom_point() +
   xlab("Kwota kredytu") +
   ylab("Okres kredytu (miesiące)") +
@@ -634,10 +639,10 @@ Kredyty, które zostały odrzucone są bardziej skupione w określonych przedzia
 
 4.  Wykres pudełkowy przedstawia zależność między dochodami aplikantów a ich historią kredytową (przyznanie lub nieprzyznanie kredytu).
 
-```{r}
-ggplot(danej, aes(x = factor(Credit_History), 
-                 y = ApplicantIncome, 
-                 fill = factor(Credit_History))) +
+```{r echo=FALSE}
+ggplot(danej, aes(x = factor(Historia_kredytowa), 
+                 y = Dochód_aplikanta, 
+                 fill = factor(Historia_kredytowa))) +
   geom_boxplot() +
   xlab("Historia kredytowa") +
   ylab("Dochód aplikanta") +
