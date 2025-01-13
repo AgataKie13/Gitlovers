@@ -561,21 +561,27 @@ library(webr)
 onuk <- danej %>% 
   count(Osoby_na_utrzymaniu, Historia_kredytowa) 
 
-PieDonut(data = onuk, aes(Historia_kredytowa, count = n))
+PieDonut(data = onuk, aes(Historia_kredytowa, count = n)) +
+  ggtitle("Historia kredytowa")
 
-PieDonut(data = onuk, aes(Osoby_na_utrzymaniu, Historia_kredytowa, count = n))
+PieDonut(data = onuk, aes(Osoby_na_utrzymaniu, Historia_kredytowa, count = n),title = "Historia kredytowa a liczba osób na utrzymaniu", showPieName = FALSE, pieLabelSize = 3,  donutLabelSize = 3, titlesize = 4, r0 = getOption("PieDonut.r0", 0.1),  r1 = getOption("PieDonut.r1", 0.7), r2 = getOption("PieDonut.r2", 1)) 
 
 ggplot(danej, aes(Plec, fill = Historia_kredytowa, group = Historia_kredytowa)) +
   geom_bar() +
-  scale_fill_brewer(palette = "Pastel1")
+  scale_fill_brewer(palette = "Pastel1") +
+  ggtitle("Historia kredytowa w zależności od płci")+
+  xlab("Płeć") +
+  ylab("Liczba")
 
 ggplot(danej, aes(x = Edukacja, y = Samozatrudnienie, color = Historia_kredytowa)) +
   geom_point(position = "jitter") +
-  coord_flip() 
+  coord_flip() +
+  ggtitle("Historia kredytowa a poziom edukacji i samozatrudnienie")
 
 ggplot(danej, aes(x = Obszar_zamieszkania, y = Wysokosc_kredytu, color = Historia_kredytowa)) +
   geom_point(position = "jitter") +
-  scale_fill_brewer(palette = "Pastel1") 
+  scale_fill_brewer(palette = "Pastel1") +
+  ggtitle("Historia kredytowa a obszar zamieszkania i wysokość kredytu")
   
 ```
 ### 10. Wykresy
