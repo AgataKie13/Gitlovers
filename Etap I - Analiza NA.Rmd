@@ -39,8 +39,7 @@ Firma chce zautomatyzować proces przyznawania pożyczki (w czasie rzeczywistym)
 ### **Pakiety wykorzystane w projekcie:**
 
 install.packages("rstatix") install.packages("ggcorrplot") install.packages("finalfit") install.packages("naniar") install.packages("VIM") install.packages("finalfit")\
-install.packages("validate") install.packages("plotly") install.packages("webr")
-install.packages("gtsummary")
+install.packages("validate") install.packages("plotly") install.packages("webr") install.packages("gtsummary")
 
 ### 1. Wczytanie danych
 
@@ -584,6 +583,7 @@ ggplot(danej, aes(x = Obszar_zamieszkania, y = Wysokosc_kredytu, color = Histori
   ggtitle("Historia kredytowa a obszar zamieszkania i wysokość kredytu")
   
 ```
+
 ### 10. Wykresy
 
 1.  Wykres kolumnowy ukazujący historię kredytową w zależności od stanu cywilnego.
@@ -596,7 +596,7 @@ ggplot(danej, aes(x = W_zwiazku_malzenskim, fill = factor(Historia_kredytowa))) 
   xlab("Stan cywilny") +
   ylab("Liczba osób") +
   scale_fill_manual(name = "Historia kredytowa",
-                    values = c("0" = "red", "1" = "green"),
+                    values = c("Nie" = "red", "Tak" = "green"),
                     labels = c("Nie przyznano", "Przyznano")) +
   ggtitle("Historia kredytowa w zależności od stanu cywilnego") +
   theme_light()
@@ -653,7 +653,7 @@ ggplot(danej, aes(x = factor(Historia_kredytowa),
   xlab("Historia kredytowa") +
   ylab("Dochód aplikanta") +
   scale_fill_manual(name = "Historia kredytowa",
-                    values = c("0" = "orange", "1" = "blue"),
+                    values = c("Nie" = "orange", "Tak" = "blue"),
                     labels = c("Nie przyznano", "Przyznano")) +
   ggtitle("Rozkład dochodów aplikantów w zależności od historii kredytowej") +
   theme_light()
