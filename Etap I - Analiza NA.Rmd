@@ -646,6 +646,12 @@ Kredyty, które zostały odrzucone są bardziej skupione w określonych przedzia
 4.  Wykres pudełkowy przedstawia zależność między dochodami aplikantów a ich historią kredytową (przyznanie lub nieprzyznanie kredytu).
 
 ```{r echo=FALSE}
+library(ggstatsplot)
+ggbetweenstats(data = danej, x = Historia_kredytowa, y = Dochód_aplikanta)
+max(danej$Dochód_aplikanta)
+dane_bez_maksimum <- danej[-82,]
+ggbetweenstats(data = dane_bez_maksimum, x = Historia_kredytowa, y = Dochód_aplikanta)
+
 ggplot(danej, aes(x = factor(Historia_kredytowa), 
                  y = Dochód_aplikanta, 
                  fill = factor(Historia_kredytowa))) +
