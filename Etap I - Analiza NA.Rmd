@@ -39,7 +39,7 @@ Firma chce zautomatyzować proces przyznawania pożyczki (w czasie rzeczywistym)
 ### **Pakiety wykorzystane w projekcie:**
 
 install.packages("rstatix") install.packages("ggcorrplot") install.packages("finalfit") install.packages("naniar") install.packages("VIM") install.packages("finalfit")\
-install.packages("validate") install.packages("plotly") install.packages("webr") install.packages("gtsummary")
+install.packages("validate") install.packages("plotly") install.packages("webr") install.packages("gtsummary") install.packages("ggstatsplot")
 
 ### 1. Wczytanie danych
 
@@ -177,7 +177,7 @@ rules_dane <- validator(
 
 Sprawdzenie czy spełnione są warunki dla danych pierwotnych "dane".
 
-```{r echo=FALSE}
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 cf_dane <- confront(dane, rules_dane)
 summary(cf_dane)
 plot(cf_dane, main="Walidacja danych pierwotnych")
@@ -205,7 +205,7 @@ rules_dane2 <- validator(
 
 Sprawdzenie czy dane przekodowane spełniają określone warunki.
 
-```{r echo=FALSE}
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 cf_dane2 <- confront(dane2, rules_dane2)  
 summary(cf_dane2)
 barplot(cf_dane2, main="Walidacja danych po przekodowaniu")
@@ -220,7 +220,7 @@ Dane pozytywnie przeszły walidacje. Wszystkie obserwacje spełniają wyżej wym
 
 Następnie tworzymy macierz korelacji wszystkich zmiennych.
 
-```{r echo=TRUE}
+```{r echo=FALSE}
 library(rstatix)
 korelacja <- cor_mat(dane2)
 library(ggcorrplot)
@@ -233,7 +233,7 @@ Macierz korelacji przedstawia zależności pomiędzy wszystkimi zmiennymi, umoż
 
 Tworzymy macierz korelacji pomiędzy brakującymi zmiennymi, aby ocenić czy występują jakieś zależności w brakach danych.
 
-```{r echo=FALSE}
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 library(mice)
 dane2_wykres <- dane2 
 names(dane2_wykres) <- c("G","M","D","E","SE","A","C","LA","LAT","CH","PA")
@@ -254,7 +254,7 @@ Na koniec zbudowano **mapę cieni**, która przedstawia procentowy udział brak�
 
 ### Test statystyczny braków danych
 
-```{r}
+```{r echo=FALSE}
 mcar_test(dane2)
 ```
 
@@ -348,7 +348,7 @@ sum(is.na(danem))
 
 #### **PORÓWNANIE STATYSTYK PRZED I PO UŻYCIU METODY IMPUTACJI DANYCH**
 
-```{r echo=FALSE}
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 library(gtsummary)
 
 dane2 %>%
@@ -386,7 +386,7 @@ danem %>%
 
 #### a) Obserwacje odstające - jednowymiarowe - Boxplot
 
-```{r}
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 boxplot((danem), main = "Analiza odchyleń")
 
 layout(matrix(c(1, 2, 3, 4, 5, 5), nrow = 3, byrow = TRUE), heights = c(1, 1, 0.5))
@@ -420,7 +420,7 @@ Z analizy wykresów pudełkowych wynika, że najbardziej odchylającymi się zmi
 
 ### b) Obserwacje odstające - wielowymiarowe - Scatterplot
 
-```{r echo=FALSE}
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 library(ggcorrplot)
 ggcorrplot(cor(danem))
 
@@ -493,7 +493,7 @@ Analiza wykresów kwantyl-kwantyl pozwala na ocenienie czy dane pasują do oczek
 
 #### d) Odchylenia Cook'a
 
-```{r echo=FALSE}
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 library(broom)
 layout(matrix(c(1, 2), nrow = TRUE, byrow = 2), heights = c(1, 1, 1))
 fit = lm(LoanAmount ~ ApplicantIncome,data=dane2)
@@ -553,7 +553,7 @@ names(danej) <- c("Plec", "W_zwiazku_malzenskim", "Osoby_na_utrzymaniu", "Edukac
 summary.data.frame(danej)
 ```
 
-```{r echo=FALSE}
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 library(plotly)
 library(dplyr)
 library(webr)
@@ -588,7 +588,7 @@ ggplot(danej, aes(x = Obszar_zamieszkania, y = Wysokosc_kredytu, color = Histori
 
 1.  Wykres kolumnowy ukazujący historię kredytową w zależności od stanu cywilnego.
 
-```{r echo=FALSE}
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 library(tidyverse)
 
 ggplot(danej, aes(x = W_zwiazku_malzenskim, fill = factor(Historia_kredytowa))) +
@@ -606,7 +606,7 @@ Wykres pokazuje, że osoby w związku małżeńskim częściej otrzymują kredyt
 
 2.  Wykres punktowy przedstawiający zależność między dochodami aplikanta i współaplikanta, z podziałem na historię kredytową („Przyznano” i „Nie przyznano”).
 
-```{r echo=FALSE}
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 ggplot(danej, aes(x = Dochód_aplikanta, 
                  y = Dochod_wspolaplikanta, 
                  color = factor(Historia_kredytowa))) +
@@ -626,7 +626,7 @@ Linia regresji "Przyznano" jest mniej stroma, co sugeruje słabszą zależność
 
 3.  Wykres punktowy ukazujący zależność między historią kredytową a kwotą kredytu oraz okresem kredytowania.
 
-```{r echo=FALSE}
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 ggplot(danej, aes(x = Wysokosc_kredytu, 
                  y = Okres_kredytu, 
                  color = factor(Historia_kredytowa))) +
@@ -651,7 +651,7 @@ ggbetweenstats(data = danej, x = Historia_kredytowa, y = Dochód_aplikanta)
 max(danej$Dochód_aplikanta)
 dane_bez_maksimum <- danej[-82,]
 ggbetweenstats(data = dane_bez_maksimum, x = Historia_kredytowa, y = Dochód_aplikanta)
-
+library(ggplot2)
 ggplot(danej, aes(x = factor(Historia_kredytowa), 
                  y = Dochód_aplikanta, 
                  fill = factor(Historia_kredytowa))) +
