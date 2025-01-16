@@ -39,7 +39,7 @@ Firma chce zautomatyzować proces przyznawania pożyczki (w czasie rzeczywistym)
 ### **Pakiety wykorzystane w projekcie:**
 
 install.packages("rstatix") install.packages("ggcorrplot") install.packages("finalfit") install.packages("naniar") install.packages("VIM") install.packages("finalfit")\
-install.packages("validate") install.packages("plotly") install.packages("webr") install.packages("gtsummary") install.packages("ggstatsplot")
+install.packages("validate") install.packages("plotly") install.packages("webr") install.packages("gtsummary") install.packages("ggstatsplot") install.packages("ggplot2")
 
 ### 1. Wczytanie danych
 
@@ -549,9 +549,11 @@ danej$Dependents <- ifelse(danej$Dependents == 3, "3+",
                            ifelse(danej$Dependents == 2, "2", 
                                   ifelse(danej$Dependents == 1, "1","0")))
 
-names(danej) <- c("Plec", "W_zwiazku_malzenskim", "Osoby_na_utrzymaniu", "Edukacja", "Samozatrudnienie", "Dochód_aplikanta", "Dochod_wspolaplikanta", "Wysokosc_kredytu", "Okres_kredytu", "Historia_kredytowa", "Obszar_zamieszkania")
+names(danej) <- c("Plec", "W_zwiazku_malzenskim", "Osoby_na_utrzymaniu", "Edukacja", "Samozatrudnienie", "Dochod_aplikanta", "Dochod_wspolaplikanta", "Wysokosc_kredytu", "Okres_kredytu", "Historia_kredytowa", "Obszar_zamieszkania")
 summary.data.frame(danej)
 ```
+
+**Zmienną zależną** w przeprowadzanej analizie danych jest zmienna **Historia kredytowa** i do niej odnosić będą się przeprowadzane wizualizacje oraz analiza wnioskowania statystycznego.
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 library(plotly)
@@ -583,14 +585,9 @@ ggplot(danej, aes(x = Obszar_zamieszkania, y = Wysokosc_kredytu, color = Histori
   ggtitle("Historia kredytowa a obszar zamieszkania i wysokość kredytu")
   
 ```
-
-### 10. Wykresy
-
-1.  Wykres kolumnowy ukazujący historię kredytową w zależności od stanu cywilnego.
-
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
+# 1. Wykres kolumnowy ukazujący historię kredytową w zależności od stanu cywilnego.
 library(tidyverse)
-
 ggplot(danej, aes(x = W_zwiazku_malzenskim, fill = factor(Historia_kredytowa))) +
   geom_bar(position = "dodge") +
   xlab("Stan cywilny") +
@@ -600,14 +597,10 @@ ggplot(danej, aes(x = W_zwiazku_malzenskim, fill = factor(Historia_kredytowa))) 
                     labels = c("Nie przyznano", "Przyznano")) +
   ggtitle("Historia kredytowa w zależności od stanu cywilnego") +
   theme_light()
-```
 
-Wykres pokazuje, że osoby w związku małżeńskim częściej otrzymują kredyt niż osoby niezamężne. Liczba odmów jest stosunkowo niska w obu grupach.
+# 2. Wykres punktowy przedstawiający zależność między dochodami aplikanta i współaplikanta, z podziałem na historię kredytową („Przyznano” i „Nie przyznano”).
 
-2.  Wykres punktowy przedstawiający zależność między dochodami aplikanta i współaplikanta, z podziałem na historię kredytową („Przyznano” i „Nie przyznano”).
-
-```{r echo=FALSE, message=FALSE, warning=FALSE}
-ggplot(danej, aes(x = Dochód_aplikanta, 
+ggplot(danej, aes(x = Dochod_aplikanta, 
                  y = Dochod_wspolaplikanta, 
                  color = factor(Historia_kredytowa))) +
   geom_point() +
@@ -618,15 +611,9 @@ ggplot(danej, aes(x = Dochód_aplikanta,
                        labels = c("Nie przyznano", "Przyznano")) +
   ggtitle("Dochody a historia kredytowa") +
   theme_light()
-```
 
-Czerwona linia regresji "Nie przyznano" wykazuje się tendencją malejącą — wyższe dochody aplikanta wiążą się z niższymi dochodami współaplikanta, gdy kredyt nie został przyznany.
+# 3. Wykres punktowy ukazujący zależność między historią kredytową a kwotą kredytu oraz okresem kredytowania.
 
-Linia regresji "Przyznano" jest mniej stroma, co sugeruje słabszą zależność między dochodami aplikanta a współaplikanta w przypadku przyznania kredytu.
-
-3.  Wykres punktowy ukazujący zależność między historią kredytową a kwotą kredytu oraz okresem kredytowania.
-
-```{r echo=FALSE, message=FALSE, warning=FALSE}
 ggplot(danej, aes(x = Wysokosc_kredytu, 
                  y = Okres_kredytu, 
                  color = factor(Historia_kredytowa))) +
@@ -639,21 +626,23 @@ ggplot(danej, aes(x = Wysokosc_kredytu,
   theme_light()
 ```
 
-Kredyty, które zostały przyznane są rozproszone w zakresie zarówno kwot kredytów, jak i okresu spłaty, natomiast większość przyznanych kredytów jest objęta dłuższym okresem spłaty.
+**Wykres 1** pokazuje, że osoby w związku małżeńskim częściej otrzymują kredyt niż osoby niezamężne. Liczba odmów jest stosunkowo niska w obu grupach.
 
-Kredyty, które zostały odrzucone są bardziej skupione w określonych przedziałach kwoty i okresu.
+Czerwona linia regresji (**wykres 2**) "Nie przyznano" wykazuje się tendencją malejącą — wyższe dochody aplikanta wiążą się z niższymi dochodami współaplikanta, gdy kredyt nie został przyznany.
+Linia regresji "Przyznano" jest mniej stroma, co sugeruje słabszą zależność między dochodami aplikanta a współaplikanta w przypadku przyznania kredytu.
 
-4.  Wykres pudełkowy przedstawia zależność między dochodami aplikantów a ich historią kredytową (przyznanie lub nieprzyznanie kredytu).
+Z analizy **wykresu 3** wynika, że kredyty, które zostały przyznane są rozproszone w zakresie zarówno kwot kredytów, jak i okresu spłaty, natomiast większość przyznanych kredytów jest objęta dłuższym okresem spłaty. Z kolei kredyty odrzucone są bardziej skupione w określonych przedziałach kwoty i okresu.
 
-```{r echo=FALSE}
-library(ggstatsplot)
-ggbetweenstats(data = danej, x = Historia_kredytowa, y = Dochód_aplikanta)
-max(danej$Dochód_aplikanta)
-dane_bez_maksimum <- danej[-82,]
-ggbetweenstats(data = dane_bez_maksimum, x = Historia_kredytowa, y = Dochód_aplikanta)
+### 10. Wnioskowanie statystyczne
+
+Rozpoczęto od stworzenia wykresu pudełkowy przedstawiającego zależność między dochodami aplikantów a ich historią kredytową (przyznanie lub nieprzyznanie kredytu).
+Następnie przeprowadzono wstępne wnioskowanie statystyczne. 
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 library(ggplot2)
 ggplot(danej, aes(x = factor(Historia_kredytowa), 
-                 y = Dochód_aplikanta, 
+                 y = Dochod_aplikanta, 
                  fill = factor(Historia_kredytowa))) +
   geom_boxplot() +
   xlab("Historia kredytowa") +
@@ -663,6 +652,13 @@ ggplot(danej, aes(x = factor(Historia_kredytowa),
                     labels = c("Nie przyznano", "Przyznano")) +
   ggtitle("Rozkład dochodów aplikantów w zależności od historii kredytowej") +
   theme_light()
+
+library(ggstatsplot)
+ggbetweenstats(data = danej, x = Historia_kredytowa, y = Dochod_aplikanta)
+max(danej$Dochod_aplikanta)
+dane_bez_maksimum <- danej[-82,]
+ggbetweenstats(data = dane_bez_maksimum, x = Historia_kredytowa, y = Dochod_aplikanta)
+
 ```
 
 Wykres pokazuje, że osoby z wyższymi dochodami mają większe szanse na przyznanie kredytu, co widać po wyższej medianie i większej różnorodności dochodów w tej grupie. W grupie, której odmówiono kredytu, dochody są na ogół niższe, choć zdarzają się wyjątki z wyższymi dochodami. Oznacza to, że dochód jest istotnym, ale nie jedynym czynnikiem wpływającym na decyzję kredytową.
