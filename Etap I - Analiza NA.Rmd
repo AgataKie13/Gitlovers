@@ -636,8 +636,7 @@ Z analizy **wykresu 3** wynika, że kredyty, które zostały przyznane są rozpr
 ### 10. Wnioskowanie statystyczne
 
 Rozpoczęto od stworzenia wykresu pudełkowy przedstawiającego zależność między dochodami aplikantów a ich historią kredytową (przyznanie lub nieprzyznanie kredytu).
-Następnie przeprowadzono wstępne wnioskowanie statystyczne. 
-
+Następnie przeprowadzono wstępne wnioskowanie statystyczne.
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 library(ggplot2)
