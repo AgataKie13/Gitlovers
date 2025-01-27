@@ -585,6 +585,7 @@ ggplot(danej, aes(x = Obszar_zamieszkania, y = Wysokosc_kredytu, color = Histori
   ggtitle("Historia kredytowa a obszar zamieszkania i wysokość kredytu")
   
 ```
+
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 # 1. Wykres kolumnowy ukazujący historię kredytową w zależności od stanu cywilnego.
 library(tidyverse)
@@ -628,16 +629,13 @@ ggplot(danej, aes(x = Wysokosc_kredytu,
 
 **Wykres 1** pokazuje, że osoby w związku małżeńskim częściej otrzymują kredyt niż osoby niezamężne. Liczba odmów jest stosunkowo niska w obu grupach.
 
-Czerwona linia regresji (**wykres 2**) "Nie przyznano" wykazuje się tendencją malejącą — wyższe dochody aplikanta wiążą się z niższymi dochodami współaplikanta, gdy kredyt nie został przyznany.
-Linia regresji "Przyznano" jest mniej stroma, co sugeruje słabszą zależność między dochodami aplikanta a współaplikanta w przypadku przyznania kredytu.
+Czerwona linia regresji (**wykres 2**) "Nie przyznano" wykazuje się tendencją malejącą — wyższe dochody aplikanta wiążą się z niższymi dochodami współaplikanta, gdy kredyt nie został przyznany. Linia regresji "Przyznano" jest mniej stroma, co sugeruje słabszą zależność między dochodami aplikanta a współaplikanta w przypadku przyznania kredytu.
 
 Z analizy **wykresu 3** wynika, że kredyty, które zostały przyznane są rozproszone w zakresie zarówno kwot kredytów, jak i okresu spłaty, natomiast większość przyznanych kredytów jest objęta dłuższym okresem spłaty. Z kolei kredyty odrzucone są bardziej skupione w określonych przedziałach kwoty i okresu.
 
 ### 10. Wnioskowanie statystyczne
 
-Rozpoczęto od stworzenia wykresu pudełkowy przedstawiającego zależność między dochodami aplikantów a ich historią kredytową (przyznanie lub nieprzyznanie kredytu).
-Następnie przeprowadzono wstępne wnioskowanie statystyczne. 
-
+Rozpoczęto od stworzenia wykresu pudełkowy przedstawiającego zależność między dochodami aplikantów a ich historią kredytową (przyznanie lub nieprzyznanie kredytu). Następnie przeprowadzono wstępne wnioskowanie statystyczne.
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 library(ggplot2)
@@ -662,3 +660,16 @@ ggbetweenstats(data = dane_bez_maksimum, x = Historia_kredytowa, y = Dochod_apli
 ```
 
 Wykres pokazuje, że osoby z wyższymi dochodami mają większe szanse na przyznanie kredytu, co widać po wyższej medianie i większej różnorodności dochodów w tej grupie. W grupie, której odmówiono kredytu, dochody są na ogół niższe, choć zdarzają się wyjątki z wyższymi dochodami. Oznacza to, że dochód jest istotnym, ale nie jedynym czynnikiem wpływającym na decyzję kredytową.
+
+
+### 11. Podsumowanie
+
+W ramach przeprowadzonego projektu dokonano kompleksowej analizy wniosków kredytowych, której celem było zrozumienie kluczowych zależności między zmiennymi oraz zidentyfikowanie czynników wpływających na decyzje kredytowe.
+
+Proces rozpoczęto od wstępnej eksploracji danych, podczas której zidentyfikowano istotne braki w zmiennych oraz szczegółowo przeanalizowano ich strukturę. Pozwoliło to na odpowiednie przygotowanie danych do dalszych etapów analizy. Kolejnym krokiem była walidacja danych, podczas której wszystkie obserwacje pozytywnie przeszły weryfikację, spełniając określone kryteria jakości. Analiza wykazała, że braki danych miały charakter całkowicie losowy (MCAR), co oznacza, że nie były one powiązane z wartościami innych zmiennych ani z samymi brakującymi danymi.
+
+W następnym etapie przeprowadzono imputację braków danych, wykorzystując metodę wielowymiarowego wypełniania danych przez równania łańcuchowe. Porównanie statystyk przed i po imputacji wykazało, że zastosowana metoda skutecznie zachowała reprezentatywność danych, co umożliwiło dalszą analizę.
+
+Analiza odstających obserwacji obejmowała zarówno podejście jednowymiarowe, z użyciem wykresów pudełkowych, jak i wielowymiarowe, przy użyciu wykresów rozrzutu (scatterplot). Pozwoliło to na identyfikację relacji między zmiennymi. Wykorzystano również metodę kwantylową oraz odchylenia Cooka, co dostarczyło dodatkowych informacji na temat struktury danych i umożliwiło identyfikację obserwacji wpływających na modele.
+
+Końcowym etapem była wizualizacja danych i wnioskowanie statystyczne, które pozwoliły na identyfikację kluczowych wzorców i zależności między zmiennymi...
