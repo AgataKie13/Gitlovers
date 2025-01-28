@@ -145,7 +145,7 @@ Ostatecznie w danych znajdują się **84** braki danych oznaczone jako NA.
 
 #### d) Sprawdzanie struktury zmiennych
 
-```{r include=FALSE}
+```{r}
 str(dane2)
 ```
 
@@ -661,7 +661,58 @@ ggbetweenstats(data = dane_bez_maksimum, x = Historia_kredytowa, y = Dochod_apli
 
 Wykres pokazuje, że osoby z wyższymi dochodami mają większe szanse na przyznanie kredytu, co widać po wyższej medianie i większej różnorodności dochodów w tej grupie. W grupie, której odmówiono kredytu, dochody są na ogół niższe, choć zdarzają się wyjątki z wyższymi dochodami. Oznacza to, że dochód jest istotnym, ale nie jedynym czynnikiem wpływającym na decyzję kredytową.
 
-*Testy Statystyczne* - trzy/4/5 testów
+*Testy Statystyczne* 
+```{r echo=FALSE}
+library(tidyverse)
+library(ggstatsplot)
+
+str(danej$Historia_kredytowa) #character
+danej$Historia_kredytowa <- ifelse(danej$Historia_kredytowa == "Tak", 1, 0) #zmiana na numeric
+str(danej$Historia_kredytowa) #numeric
+hist(danej$Historia_kredytowa)
+
+shapiro.test(danej$Historia_kredytowa)
+
+danej$Historia_kredytowa <- ifelse(danej$Historia_kredytowa == 1, "Tak", "Nie") #powrót do zm. jakościowej
+str(danej$Historia_kredytowa) #character
+```
+Zaprezentowany histogram oraz test normalności rozkładu Shapiro-Wilka pozwalają stwierdzić, że zmienna zależna nie ma rozkładu normalnego. W związku z tym dalsze wnioskowanie statystyczne należy przeprowadzić w oparciu o *testy nieparametryczne*.
+
+```{r echo=FALSE}
+library(tidyverse)
+library(ggstatsplot)
+
+# 2. Test  U Manna-Whitneya
+
+wilcox.test(danej$Historia_kredytowa, danej$Dochod_aplikanta)
+
+
+# 3. Test ANOVA - sprawdza, czy istnieją istotne różnice między więcej niż dwoma grupami.
+wyniki <- aov(danej$Historia_kredytowa ~ danej$Dochod_aplikanta)
+summary(wyniki)
+
+
+model <- lm(danej$Historia_kredytowa ~ danej$Dochod_aplikanta)
+summary(model)
+
+ggscatterstats(
+  data=danej,
+  y=Dochod_aplikanta,
+  x=Historia_kredytowa,
+  type="np"
+)
+
+
+ggbarstats(
+  data=danej,
+  x=Historia_kredytowa,
+  y=Dochod_aplikanta,
+  type="np"
+)
+```
+
+
+- trzy/4/5 testów
 alfa=0.01 (błąd pierwszego rodzaju - odrzucenie hipotezy która jest tak na prawdę prawdziwa)
 H0: u1=u2 ; u1-u2=0
 
