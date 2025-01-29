@@ -40,6 +40,7 @@ Firma chce zautomatyzować proces przyznawania pożyczki (w czasie rzeczywistym)
 
 install.packages("rstatix") install.packages("ggcorrplot") install.packages("finalfit") install.packages("naniar") install.packages("VIM") install.packages("finalfit")\
 install.packages("validate") install.packages("plotly") install.packages("webr") install.packages("gtsummary") install.packages("ggstatsplot") install.packages("ggplot2")
+install.packages("kableExtra")
 
 ### 1. Wczytanie danych
 
@@ -235,9 +236,11 @@ Tworzymy macierz korelacji pomiędzy brakującymi zmiennymi, aby ocenić czy wys
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 library(mice)
+library(DT)
+
 dane2_wykres <- dane2 
 names(dane2_wykres) <- c("G","M","D","E","SE","A","C","LA","LAT","CH","PA")
-md.pattern(dane2_wykres)
+datatable(md.pattern(dane2_wykres))
 library(naniar)
 gg_miss_fct(dane2, Credit_History)
 gg_miss_upset(dane2)
@@ -497,26 +500,26 @@ Analiza wykresów kwantyl-kwantyl pozwala na ocenienie czy dane pasują do oczek
 library(broom)
 layout(matrix(c(1, 2), nrow = TRUE, byrow = 2), heights = c(1, 1, 1))
 fit = lm(LoanAmount ~ ApplicantIncome,data=dane2)
-cooks.distance(fit3)
-plot(fit3,which=4, main="Kwota kredytu vs Dochód wnioskodawcy")
+cooks.distance(fit)
+plot(fit,which=4, main="Kwota kredytu vs Dochód wnioskodawcy")
 
 fit1 = lm(LoanAmount ~ Loan_Amount_Term,data=dane2)
-cooks.distance(fit4)
-plot(fit4,which=4, main="Kwota kredytu vs Czas trwania")
+cooks.distance(fit1)
+plot(fit1,which=4, main="Kwota kredytu vs Czas trwania")
 
 fit2 = lm(LoanAmount ~ Married,data=dane2)
-cooks.distance(fit)
-plot(fit,which=4, main="Kwota kredytu vs Stan cywilny")
+cooks.distance(fit2)
+plot(fit2,which=4, main="Kwota kredytu vs Stan cywilny")
 
 fit3 = lm(LoanAmount ~ Gender,data=dane2)
-cooks.distance(fit1)
-plot(fit1,which=4, main="Kwota kredytu vs Płeć")
+cooks.distance(fit3)
+plot(fit3,which=4, main="Kwota kredytu vs Płeć")
 
 layout(matrix(c(1), nrow = TRUE, byrow = 1), heights = c(1, 1, 1))
 
 fit4 = lm(LoanAmount ~ Education,data=dane2)
-cooks.distance(fit2)
-plot(fit2,which=4, main="Kwota kredytu vs Wykształcenie")
+cooks.distance(fit4)
+plot(fit4,which=4, main="Kwota kredytu vs Wykształcenie")
 
 ```
 
@@ -587,7 +590,6 @@ ggplot(danej, aes(x = Obszar_zamieszkania, y = Wysokosc_kredytu, color = Histori
 ```
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
-# 1. Wykres kolumnowy ukazujący historię kredytową w zależności od stanu cywilnego.
 library(tidyverse)
 ggplot(danej, aes(x = W_zwiazku_malzenskim, fill = factor(Historia_kredytowa))) +
   geom_bar(position = "dodge") +
@@ -598,8 +600,6 @@ ggplot(danej, aes(x = W_zwiazku_malzenskim, fill = factor(Historia_kredytowa))) 
                     labels = c("Nie przyznano", "Przyznano")) +
   ggtitle("Historia kredytowa w zależności od stanu cywilnego") +
   theme_light()
-
-# 2. Wykres punktowy przedstawiający zależność między dochodami aplikanta i współaplikanta, z podziałem na historię kredytową („Przyznano” i „Nie przyznano”).
 
 ggplot(danej, aes(x = Dochod_aplikanta, 
                  y = Dochod_wspolaplikanta, 
@@ -612,8 +612,6 @@ ggplot(danej, aes(x = Dochod_aplikanta,
                        labels = c("Nie przyznano", "Przyznano")) +
   ggtitle("Dochody a historia kredytowa") +
   theme_light()
-
-# 3. Wykres punktowy ukazujący zależność między historią kredytową a kwotą kredytu oraz okresem kredytowania.
 
 ggplot(danej, aes(x = Wysokosc_kredytu, 
                  y = Okres_kredytu, 
@@ -635,7 +633,7 @@ Z analizy **wykresu 3** wynika, że kredyty, które zostały przyznane są rozpr
 
 ### 10. Wnioskowanie statystyczne
 
-Rozpoczęto od stworzenia wykresu pudełkowy przedstawiającego zależność między dochodami aplikantów a ich historią kredytową (przyznanie lub nieprzyznanie kredytu). Następnie przeprowadzono wstępne wnioskowanie statystyczne.
+Rozpoczęto od stworzenia wykresu pudełkowego przedstawiającego zależność między dochodami aplikantów a ich historią kredytową (przyznanie lub nieprzyznanie kredytu). Następnie przeprowadzono wstępne wnioskowanie statystyczne.
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 library(ggplot2)
@@ -655,7 +653,8 @@ library(ggstatsplot)
 ggbetweenstats(data = danej, x = Historia_kredytowa, y = Dochod_aplikanta)
 max(danej$Dochod_aplikanta)
 dane_bez_maksimum <- danej[-82,]
-ggbetweenstats(data = dane_bez_maksimum, x = Historia_kredytowa, y = Dochod_aplikanta)
+p <- ggbetweenstats(data = dane_bez_maksimum, x = Historia_kredytowa, y = Dochod_aplikanta)
+plotly::ggplotly(p)
 
 ```
 
@@ -669,12 +668,25 @@ library(ggstatsplot)
 str(danej$Historia_kredytowa) #character
 danej$Historia_kredytowa <- ifelse(danej$Historia_kredytowa == "Tak", 1, 0) #zmiana na numeric
 str(danej$Historia_kredytowa) #numeric
-hist(danej$Historia_kredytowa)
 
-shapiro.test(danej$Historia_kredytowa)
+hist(danej$Historia_kredytowa, main = "Histogram rozkładu zmiennej zależnej", xlab = "Wartości")
 
-danej$Historia_kredytowa <- ifelse(danej$Historia_kredytowa == 1, "Tak", "Nie") #powrót do zm. jakościowej
-str(danej$Historia_kredytowa) #character
+shapiro_test <- shapiro.test(danej$Historia_kredytowa)
+wyniki_testu <- data.frame(
+  Zmienna = "Historia_kredytowa",
+  Statystyka = shapiro_test$statistic,
+  Wartość_p = shapiro_test$p.value
+)
+library(grid)
+library(gridExtra)
+
+tabela_z_tytulem <- tableGrob(wyniki_testu)
+
+grid.arrange(textGrob("Wyniki testu Shapiro-Wilka", 
+                      gp=gpar(fontsize=12, fontface="bold")), 
+                      tabela_z_tytulem, ncol=1,
+                      heights = unit(c(1, 2), "cm")
+)
 ```
 Zaprezentowany histogram oraz test normalności rozkładu Shapiro-Wilka pozwalają stwierdzić, że zmienna zależna nie ma rozkładu normalnego. W związku z tym dalsze wnioskowanie statystyczne należy przeprowadzić w oparciu o *testy nieparametryczne*.
 
@@ -682,19 +694,32 @@ Zaprezentowany histogram oraz test normalności rozkładu Shapiro-Wilka pozwalaj
 library(tidyverse)
 library(ggstatsplot)
 
-# 2. Test  U Manna-Whitneya
+# Test U Manna-Whitneya
+wilcox_test <- wilcox.test(danej$Historia_kredytowa, danej$Dochod_aplikanta)
+wilcox_results <- data.frame(
+  Statystyka = wilcox_test$statistic,
+  Wartość_p = wilcox_test$p.value,
+  Metoda = wilcox_test$method,
+  Alternatywa = wilcox_test$alternative
+)
 
-wilcox.test(danej$Historia_kredytowa, danej$Dochod_aplikanta)
+library(kableExtra)
+wilcox_table_kable <- kable(wilcox_results, format = "html", caption = "Wyniki testu Wilcoxona") %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"))
+wilcox_table_kable
+
+# Test ANOVA
+anova_test <- aov(danej$Historia_kredytowa ~ danej$Dochod_aplikanta)
+anova_summary <- summary(anova_test)
+anova_df <- as.data.frame(anova_summary[[1]])
+
+library(kableExtra)
+anova_table_kable <- kable(anova_df, format = "html", caption = "Wyniki testu ANOVA") %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"))
+anova_table_kable
 
 
-# 3. Test ANOVA - sprawdza, czy istnieją istotne różnice między więcej niż dwoma grupami.
-wyniki <- aov(danej$Historia_kredytowa ~ danej$Dochod_aplikanta)
-summary(wyniki)
-
-
-model <- lm(danej$Historia_kredytowa ~ danej$Dochod_aplikanta)
-summary(model)
-
+# NIE WIEM CZY ZOSTAWIAĆ
 ggscatterstats(
   data=danej,
   y=Dochod_aplikanta,
@@ -702,7 +727,7 @@ ggscatterstats(
   type="np"
 )
 
-
+# NIE WIEM CZY ZOSTAWIAĆ - MOŻE DAĆ INNĄ ZALEŻNOŚĆ, BO TA JEST MAŁO WIDOCZNA
 ggbarstats(
   data=danej,
   x=Historia_kredytowa,
@@ -711,72 +736,29 @@ ggbarstats(
 )
 ```
 
+Przeprowadzone testy statystyczne pozwalają na porównanie różnic między grupami.
+*Test U Manna-Whitneya* jako test nieparametryczny używany jest do porównywania dwóch niezależnych grup w celu sprawdzenia, czy pochodzą one z tej samej populacji. Został wykorzystany, ponieważ analizowane dane nie spełniają założeń dotyczących normalności rozkładu. Statystyka testu U wynosi 671, co oznacza, że rozkłady obu badanych grup są do siebie bardzo podobne.
 
-- trzy/4/5 testów
-alfa=0.01 (błąd pierwszego rodzaju - odrzucenie hipotezy która jest tak na prawdę prawdziwa)
-H0: u1=u2 ; u1-u2=0
+*Test ANOVA* sprawdza, czy istnieją istotne różnice między więcej niż dwoma grupami.
 
-tstudent t=(średnia1-średnia2)/pierwiastek(odchylenie standoardowe/n1 + odst/n2)
+**Hipoteza zerowa** (H₀): Wszystkie grupy mają te same średnie (brak różnic między grupami).
+**Hipoteza alternatywna** (H₁): Co najmniej jedna z grup różni się średnią od pozostałych.
 
-z
-chi2
-fisher
-
-złota reguła decyzyjna: pole powierzchni < alfa 
-
-beta (błąd drugiego rodzaju - prawd. przyjęcia fałszu)
-beta <=0.1
-1-beta = moc testu (power..test) =  chcemy żeby była 0.9 (90%)
-power analisys - po testowaniu
+Wynik testu ANOVA wynosi p-value = 0.0465997, co oznacza, że istnieje statystycznie istotna różnica między grupami, gdy poziom istotności alfa=0,05. W związku z tym prawdopodobieństwo uzyskania wyników równie ekstremalnych, zakładając brak różnic między grupami wynosi około 4.66%. Ponieważ jest to mniejsze niż 5%, możena uznać różnice między grupami za istotne.
 
 
-testy na danych jakościowych
-  kobiety i mężczyzn i ankieta 0-5
-  
-  tabela kontyngencji - analiza danych jakościowych - nie policzy się średniej - czy proporcjonalnie idzie podobnie od 1 do 5 czy inaczej
-  1. tabela źródłowa
-  2. druga tabela - tzw. test niezależności - tabelka oczekiwana - "wypadkowa oczekiwana" suma wiersza*suma wiersza/n
-  3. suma kwadratów chi2 = suma (((obs-oczek)^2)/oczekiwana)
-    gdy się zwiększa to znaczy, że jest inaczej niż neutralnie. im większe chi2 tym więcej dowodów że nie jest przypadkowo, niezależnie, że kobiety inaczej odpowiadały niż mężczyźni
-      gdy chi2 wpadnie w ogonek 
-      0->niesk, asymetria lewostr.
-      
-      
+*Oszacowanie modelu logitowego dla zmiennej zależnej Historia_kredytowa*
 ```{r}
-library(tidyverse)
-library(ggstatsplot)
-data("diamonds")
-
-ggbarstats(
-  data=diamonds,
-  y=clarity,
-  x=color
-)
-
-hist(diamonds$price)  #nie można używać średnich przy takim rozkładzie jak już to mediana, rangowanie
-
-ggstatsplot::ggbetweenstats(
-  data=diamonds,
-  y=price, #ilościowa
-  x=cut, #jakościowa
-  type="np"  #p-paramtreyczny - średnia (domyślne nie trzeba pisać jeśli rozkład jest symetryczny/normalny) ; np-nieparamteryczny - bez użycia parametrów takich jak średnia
-)
-    #czerwona korpeczka to mediana; !klamerki - pary które istotnie różnią się między sobą
-
-wyniki <- aov(data=diamonds,price~cut)
-summary(wyniki)
-
-wyniki2 <- aov(data=diamonds,price~cut*color) #szukanie nie tylko dla oddzielnie tych zmiennych ale też interakcji między zmiennymi
-summary(wyniki2)
-
-
-ggscatterstats(
-  data=diamonds,
-  y=price,
-  x=carat,
-  type="np"
-)
+logit <- glm(Historia_kredytowa ~ Dochod_aplikanta + Wysokosc_kredytu + Dochod_wspolaplikanta + Okres_kredytu, data = danej, family = binomial)
+summary(logit)
+ 
+logit1 <- glm(Historia_kredytowa ~ Dochod_aplikanta, data = danej, family = binomial)
+summary(logit1)
+ 
+danej$Historia_kredytowa <- ifelse(danej$Historia_kredytowa == 1, "Tak", "Nie") #powrót do zm. jakościowej
+str(danej$Historia_kredytowa) #character
 ```
+**Pierwszy model** logitowy pokazuje, że tylko jedna cecha ma istotny wpływ na zmienną zależną. W związku z czym zbudowano **drugi model**, który przedstawia tylko zależność między **historią kredytową** a **dochodem aplikanta**. Również analiza wartości **AIC** pokazuje, że drugi model jest lepiej dopasowany.
 
 ### 11. Podsumowanie
 
