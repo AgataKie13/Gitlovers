@@ -39,14 +39,12 @@ Firma chce zautomatyzować proces przyznawania pożyczki (w czasie rzeczywistym)
 ### **Pakiety wykorzystane w projekcie:**
 
 install.packages("rstatix") install.packages("ggcorrplot") install.packages("finalfit") install.packages("naniar") install.packages("VIM") install.packages("finalfit")\
-install.packages("validate") install.packages("plotly") install.packages("webr") install.packages("gtsummary") install.packages("ggstatsplot") install.packages("ggplot2")
-install.packages("kableExtra")
+install.packages("validate") install.packages("plotly") install.packages("webr") install.packages("gtsummary") install.packages("ggstatsplot") install.packages("ggplot2") install.packages("kableExtra")
 
 ### 1. Wczytanie danych
 
-```{r}
+```{r include=FALSE}
 dane <- read.csv("Hipoteczny.csv")
-names(dane)
 ```
 
 ### 2. Porządkowanie danych
@@ -180,7 +178,6 @@ Sprawdzenie czy spełnione są warunki dla danych pierwotnych "dane".
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 cf_dane <- confront(dane, rules_dane)
-summary(cf_dane)
 plot(cf_dane, main="Walidacja danych pierwotnych")
 
 ```
@@ -208,7 +205,6 @@ Sprawdzenie czy dane przekodowane spełniają określone warunki.
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 cf_dane2 <- confront(dane2, rules_dane2)  
-summary(cf_dane2)
 barplot(cf_dane2, main="Walidacja danych po przekodowaniu")
 
 ```
@@ -221,10 +217,10 @@ Dane pozytywnie przeszły walidacje. Wszystkie obserwacje spełniają wyżej wym
 
 Następnie tworzymy macierz korelacji wszystkich zmiennych.
 
-```{r echo=FALSE}
+```{r}
 library(rstatix)
-korelacja <- cor_mat(dane2)
 library(ggcorrplot)
+korelacja <- cor_mat(dane2)
 ggcorrplot(cor(dane2))
 ```
 
@@ -258,7 +254,13 @@ Na koniec zbudowano **mapę cieni**, która przedstawia procentowy udział brak�
 ### Test statystyczny braków danych
 
 ```{r echo=FALSE}
-mcar_test(dane2)
+library(kableExtra)
+test_result <- mcar_test(dane2)
+test_df <- as.data.frame(test_result)
+test_table <- kable(test_df, format = "html", caption = "Wyniki testu MCAR: Missing Completely At Random") %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"))
+
+test_table
 ```
 
 Hipoteza zerowa testu: Braki danych są MCAR (całkowicie losowe). Hipoteza alternatywna testu: Braki danych nie są MCAR.
@@ -377,7 +379,7 @@ danem %>%
       all_categorical() ~ "{n} ({p}%)"
     )
   ) %>%
-  modify_caption("**Tabela 1. Statystyki opisowe według historii kredytowej po imputacji**") %>%
+  modify_caption("**Tabela 2. Statystyki opisowe według historii kredytowej po imputacji**") %>%
   modify_footnote(
     all_stat_cols() ~ "Zmienne ciągłe: średnia, kwantyl 1, mediana, kwantyl 3, minimum, maksimum; zmienne kategoryczne: liczność (%)."
   ) %>%
@@ -496,29 +498,24 @@ Analiza wykresów kwantyl-kwantyl pozwala na ocenienie czy dane pasują do oczek
 
 #### d) Odchylenia Cook'a
 
-```{r echo=FALSE, message=FALSE, warning=FALSE}
+```{r echo=FALSE}
 library(broom)
 layout(matrix(c(1, 2), nrow = TRUE, byrow = 2), heights = c(1, 1, 1))
 fit = lm(LoanAmount ~ ApplicantIncome,data=dane2)
-cooks.distance(fit)
 plot(fit,which=4, main="Kwota kredytu vs Dochód wnioskodawcy")
 
 fit1 = lm(LoanAmount ~ Loan_Amount_Term,data=dane2)
-cooks.distance(fit1)
 plot(fit1,which=4, main="Kwota kredytu vs Czas trwania")
 
 fit2 = lm(LoanAmount ~ Married,data=dane2)
-cooks.distance(fit2)
 plot(fit2,which=4, main="Kwota kredytu vs Stan cywilny")
 
 fit3 = lm(LoanAmount ~ Gender,data=dane2)
-cooks.distance(fit3)
 plot(fit3,which=4, main="Kwota kredytu vs Płeć")
 
 layout(matrix(c(1), nrow = TRUE, byrow = 1), heights = c(1, 1, 1))
 
 fit4 = lm(LoanAmount ~ Education,data=dane2)
-cooks.distance(fit4)
 plot(fit4,which=4, main="Kwota kredytu vs Wykształcenie")
 
 ```
@@ -660,15 +657,17 @@ plotly::ggplotly(p)
 
 Wykres pokazuje, że osoby z wyższymi dochodami mają większe szanse na przyznanie kredytu, co widać po wyższej medianie i większej różnorodności dochodów w tej grupie. W grupie, której odmówiono kredytu, dochody są na ogół niższe, choć zdarzają się wyjątki z wyższymi dochodami. Oznacza to, że dochód jest istotnym, ale nie jedynym czynnikiem wpływającym na decyzję kredytową.
 
-*Testy Statystyczne* 
-```{r echo=FALSE}
-library(tidyverse)
-library(ggstatsplot)
+*Testy Statystyczne*
 
+```{r include=FALSE}
 str(danej$Historia_kredytowa) #character
 danej$Historia_kredytowa <- ifelse(danej$Historia_kredytowa == "Tak", 1, 0) #zmiana na numeric
 str(danej$Historia_kredytowa) #numeric
+```
 
+```{r echo=FALSE}
+library(tidyverse)
+library(ggstatsplot)
 hist(danej$Historia_kredytowa, main = "Histogram rozkładu zmiennej zależnej", xlab = "Wartości")
 
 shapiro_test <- shapiro.test(danej$Historia_kredytowa)
@@ -688,7 +687,8 @@ grid.arrange(textGrob("Wyniki testu Shapiro-Wilka",
                       heights = unit(c(1, 2), "cm")
 )
 ```
-Zaprezentowany histogram oraz test normalności rozkładu Shapiro-Wilka pozwalają stwierdzić, że zmienna zależna nie ma rozkładu normalnego. W związku z tym dalsze wnioskowanie statystyczne należy przeprowadzić w oparciu o *testy nieparametryczne*.
+
+/Zaprezentowany histogram oraz test normalności rozkładu Shapiro-Wilka pozwalają stwierdzić, że zmienna zależna nie ma rozkładu normalnego. W związku z tym dalsze wnioskowanie statystyczne należy przeprowadzić w oparciu o *testy nieparametryczne*.
 
 ```{r echo=FALSE}
 library(tidyverse)
@@ -736,29 +736,30 @@ ggbarstats(
 )
 ```
 
-Przeprowadzone testy statystyczne pozwalają na porównanie różnic między grupami.
-*Test U Manna-Whitneya* jako test nieparametryczny używany jest do porównywania dwóch niezależnych grup w celu sprawdzenia, czy pochodzą one z tej samej populacji. Został wykorzystany, ponieważ analizowane dane nie spełniają założeń dotyczących normalności rozkładu. Statystyka testu U wynosi 671, co oznacza, że rozkłady obu badanych grup są do siebie bardzo podobne.
+Przeprowadzone testy statystyczne pozwalają na porównanie różnic między grupami. *Test U Manna-Whitneya* jako test nieparametryczny używany jest do porównywania dwóch niezależnych grup w celu sprawdzenia, czy pochodzą one z tej samej populacji. Został wykorzystany, ponieważ analizowane dane nie spełniają założeń dotyczących normalności rozkładu. Statystyka testu U wynosi 671, co oznacza, że rozkłady obu badanych grup są do siebie bardzo podobne.
 
 *Test ANOVA* sprawdza, czy istnieją istotne różnice między więcej niż dwoma grupami.
 
-**Hipoteza zerowa** (H₀): Wszystkie grupy mają te same średnie (brak różnic między grupami).
-**Hipoteza alternatywna** (H₁): Co najmniej jedna z grup różni się średnią od pozostałych.
+**Hipoteza zerowa** (H₀): Wszystkie grupy mają te same średnie (brak różnic między grupami). **Hipoteza alternatywna** (H₁): Co najmniej jedna z grup różni się średnią od pozostałych.
 
 Wynik testu ANOVA wynosi p-value = 0.0465997, co oznacza, że istnieje statystycznie istotna różnica między grupami, gdy poziom istotności alfa=0,05. W związku z tym prawdopodobieństwo uzyskania wyników równie ekstremalnych, zakładając brak różnic między grupami wynosi około 4.66%. Ponieważ jest to mniejsze niż 5%, możena uznać różnice między grupami za istotne.
 
-
 *Oszacowanie modelu logitowego dla zmiennej zależnej Historia_kredytowa*
-```{r}
+
+```{r echo=FALSE}
 logit <- glm(Historia_kredytowa ~ Dochod_aplikanta + Wysokosc_kredytu + Dochod_wspolaplikanta + Okres_kredytu, data = danej, family = binomial)
 summary(logit)
  
 logit1 <- glm(Historia_kredytowa ~ Dochod_aplikanta, data = danej, family = binomial)
 summary(logit1)
- 
+```
+
+**Pierwszy model** logitowy pokazuje, że tylko jedna cecha ma istotny wpływ na zmienną zależną. W związku z czym zbudowano **drugi model**, który przedstawia tylko zależność między **historią kredytową** a **dochodem aplikanta**. Również analiza wartości **AIC** pokazuje, że drugi model jest lepiej dopasowany.
+
+```{r include=FALSE}
 danej$Historia_kredytowa <- ifelse(danej$Historia_kredytowa == 1, "Tak", "Nie") #powrót do zm. jakościowej
 str(danej$Historia_kredytowa) #character
 ```
-**Pierwszy model** logitowy pokazuje, że tylko jedna cecha ma istotny wpływ na zmienną zależną. W związku z czym zbudowano **drugi model**, który przedstawia tylko zależność między **historią kredytową** a **dochodem aplikanta**. Również analiza wartości **AIC** pokazuje, że drugi model jest lepiej dopasowany.
 
 ### 11. Podsumowanie
 
@@ -771,4 +772,3 @@ W następnym etapie przeprowadzono imputację braków danych, wykorzystując met
 Analiza odstających obserwacji obejmowała zarówno podejście jednowymiarowe, z użyciem wykresów pudełkowych, jak i wielowymiarowe, przy użyciu wykresów rozrzutu (scatterplot). Pozwoliło to na identyfikację relacji między zmiennymi. Wykorzystano również metodę kwantylową oraz odchylenia Cooka, co dostarczyło dodatkowych informacji na temat struktury danych i umożliwiło identyfikację obserwacji wpływających na modele.
 
 Końcowym etapem była wizualizacja danych i wnioskowanie statystyczne, które pozwoliły na identyfikację kluczowych wzorców i zależności między zmiennymi...
-
