@@ -2,7 +2,9 @@
 title: "Projekt Analiza Danych"
 author: "A. Kierznikowicz, J. Dobosz, P. Cebulska"
 date: "2024-11-20"
-output: html_document
+output:
+  html_document: default
+  pdf_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -217,9 +219,12 @@ Dane pozytywnie przeszły walidacje. Wszystkie obserwacje spełniają wyżej wym
 
 Następnie tworzymy macierz korelacji wszystkich zmiennych.
 
-```{r}
+```{r include=FALSE}
 library(rstatix)
 library(ggcorrplot)
+```
+
+```{r echo=FALSE}
 korelacja <- cor_mat(dane2)
 ggcorrplot(cor(dane2))
 ```
@@ -253,8 +258,12 @@ Na koniec zbudowano **mapę cieni**, która przedstawia procentowy udział brak�
 
 ### Test statystyczny braków danych
 
-```{r echo=FALSE}
+```{r include=FALSE}
 library(kableExtra)
+
+```
+
+```{r echo=FALSE}
 test_result <- mcar_test(dane2)
 test_df <- as.data.frame(test_result)
 test_table <- kable(test_df, format = "html", caption = "Wyniki testu MCAR: Missing Completely At Random") %>%
@@ -646,13 +655,19 @@ ggplot(danej, aes(x = factor(Historia_kredytowa),
   ggtitle("Rozkład dochodów aplikantów w zależności od historii kredytowej") +
   theme_light()
 
+
+```
+
+```{r message=FALSE, warning=FALSE, include=FALSE}
 library(ggstatsplot)
 ggbetweenstats(data = danej, x = Historia_kredytowa, y = Dochod_aplikanta)
 max(danej$Dochod_aplikanta)
 dane_bez_maksimum <- danej[-82,]
 p <- ggbetweenstats(data = dane_bez_maksimum, x = Historia_kredytowa, y = Dochod_aplikanta)
-plotly::ggplotly(p)
+```
 
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+plotly::ggplotly(p)
 ```
 
 Wykres pokazuje, że osoby z wyższymi dochodami mają większe szanse na przyznanie kredytu, co widać po wyższej medianie i większej różnorodności dochodów w tej grupie. W grupie, której odmówiono kredytu, dochody są na ogół niższe, choć zdarzają się wyjątki z wyższymi dochodami. Oznacza to, że dochód jest istotnym, ale nie jedynym czynnikiem wpływającym na decyzję kredytową.
@@ -676,9 +691,18 @@ wyniki_testu <- data.frame(
   Statystyka = shapiro_test$statistic,
   Wartość_p = shapiro_test$p.value
 )
+
+```
+
+
+```{r include=FALSE}
 library(grid)
 library(gridExtra)
 
+
+```
+
+```{r echo=FALSE}
 tabela_z_tytulem <- tableGrob(wyniki_testu)
 
 grid.arrange(textGrob("Wyniki testu Shapiro-Wilka", 
@@ -688,9 +712,10 @@ grid.arrange(textGrob("Wyniki testu Shapiro-Wilka",
 )
 ```
 
-/Zaprezentowany histogram oraz test normalności rozkładu Shapiro-Wilka pozwalają stwierdzić, że zmienna zależna nie ma rozkładu normalnego. W związku z tym dalsze wnioskowanie statystyczne należy przeprowadzić w oparciu o *testy nieparametryczne*.
 
-```{r echo=FALSE}
+Zaprezentowany histogram oraz test normalności rozkładu Shapiro-Wilka pozwalają stwierdzić, że zmienna zależna nie ma rozkładu normalnego. W związku z tym dalsze wnioskowanie statystyczne należy przeprowadzić w oparciu o *testy nieparametryczne*.
+
+```{r include=FALSE}
 library(tidyverse)
 library(ggstatsplot)
 
@@ -702,8 +727,14 @@ wilcox_results <- data.frame(
   Metoda = wilcox_test$method,
   Alternatywa = wilcox_test$alternative
 )
+```
 
+```{r include=FALSE}
 library(kableExtra)
+```
+
+```{r echo=FALSE}
+
 wilcox_table_kable <- kable(wilcox_results, format = "html", caption = "Wyniki testu Wilcoxona") %>%
   kable_styling(bootstrap_options = c("striped", "hover", "condensed"))
 wilcox_table_kable
@@ -713,28 +744,14 @@ anova_test <- aov(danej$Historia_kredytowa ~ danej$Dochod_aplikanta)
 anova_summary <- summary(anova_test)
 anova_df <- as.data.frame(anova_summary[[1]])
 
-library(kableExtra)
+
 anova_table_kable <- kable(anova_df, format = "html", caption = "Wyniki testu ANOVA") %>%
   kable_styling(bootstrap_options = c("striped", "hover", "condensed"))
 anova_table_kable
 
-
-# NIE WIEM CZY ZOSTAWIAĆ
-ggscatterstats(
-  data=danej,
-  y=Dochod_aplikanta,
-  x=Historia_kredytowa,
-  type="np"
-)
-
-# NIE WIEM CZY ZOSTAWIAĆ - MOŻE DAĆ INNĄ ZALEŻNOŚĆ, BO TA JEST MAŁO WIDOCZNA
-ggbarstats(
-  data=danej,
-  x=Historia_kredytowa,
-  y=Dochod_aplikanta,
-  type="np"
-)
 ```
+
+
 
 Przeprowadzone testy statystyczne pozwalają na porównanie różnic między grupami. *Test U Manna-Whitneya* jako test nieparametryczny używany jest do porównywania dwóch niezależnych grup w celu sprawdzenia, czy pochodzą one z tej samej populacji. Został wykorzystany, ponieważ analizowane dane nie spełniają założeń dotyczących normalności rozkładu. Statystyka testu U wynosi 671, co oznacza, że rozkłady obu badanych grup są do siebie bardzo podobne.
 
@@ -748,11 +765,12 @@ Wynik testu ANOVA wynosi p-value = 0.0465997, co oznacza, że istnieje statystyc
 
 ```{r echo=FALSE}
 logit <- glm(Historia_kredytowa ~ Dochod_aplikanta + Wysokosc_kredytu + Dochod_wspolaplikanta + Okres_kredytu, data = danej, family = binomial)
-summary(logit)
+summary(logit)$coefficients
  
 logit1 <- glm(Historia_kredytowa ~ Dochod_aplikanta, data = danej, family = binomial)
-summary(logit1)
+summary(logit1)$coefficients
 ```
+
 
 **Pierwszy model** logitowy pokazuje, że tylko jedna cecha ma istotny wpływ na zmienną zależną. W związku z czym zbudowano **drugi model**, który przedstawia tylko zależność między **historią kredytową** a **dochodem aplikanta**. Również analiza wartości **AIC** pokazuje, że drugi model jest lepiej dopasowany.
 
