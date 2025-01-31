@@ -795,4 +795,6 @@ W następnym etapie przeprowadzono imputację braków danych, wykorzystując met
 
 Analiza odstających obserwacji obejmowała zarówno podejście jednowymiarowe, z użyciem wykresów pudełkowych, jak i wielowymiarowe, przy użyciu wykresów rozrzutu (scatterplot). Pozwoliło to na identyfikację relacji między zmiennymi. Wykorzystano również metodę kwantylową oraz odchylenia Cooka, co dostarczyło dodatkowych informacji na temat struktury danych i umożliwiło identyfikację obserwacji wpływających na modele.
 
-Końcowym etapem była wizualizacja danych i wnioskowanie statystyczne, które pozwoliły na identyfikację kluczowych wzorców i zależności między zmiennymi. Wskazały, że najistotniejszym czynnikiem kształtującym zmienną Historia kredytowa. Inne zmienne nie mają tak istotnego wpływu na odrzucenie lub przyjęcie wniosku o przyznanie kredytu.
+Końcowym etapem była wizualizacja danych i wnioskowanie statystyczne, które pozwoliły na identyfikację kluczowych wzorców i zależności między zmiennymi. Wskazały, że najistotniejszym czynnikiem kształtującym zmienną historia kredytowa jest dochód aplikanta. Inne zmienne nie mają tak istotnego wpływu na odrzucenie lub przyjęcie wniosku o przyznanie kredytu.
+
+
