@@ -602,7 +602,7 @@ ggplot(danej, aes(x = W_zwiazku_malzenskim, fill = factor(Historia_kredytowa))) 
   xlab("Stan cywilny") +
   ylab("Liczba osób") +
   scale_fill_manual(name = "Historia kredytowa",
-                    values = c("Nie" = "red", "Tak" = "green"),
+                    values = c("Nie" = "#DC143C", "Tak" = "#90EE90"),
                     labels = c("Nie przyznano", "Przyznano")) +
   ggtitle("Historia kredytowa w zależności od stanu cywilnego") +
   theme_light()
@@ -650,7 +650,7 @@ ggplot(danej, aes(x = factor(Historia_kredytowa),
   xlab("Historia kredytowa") +
   ylab("Dochód aplikanta") +
   scale_fill_manual(name = "Historia kredytowa",
-                    values = c("Nie" = "orange", "Tak" = "blue"),
+                    values = c("Nie" = "#CC9999", "Tak" = "#66CCFF"),
                     labels = c("Nie przyznano", "Przyznano")) +
   ggtitle("Rozkład dochodów aplikantów w zależności od historii kredytowej") +
   theme_light()
