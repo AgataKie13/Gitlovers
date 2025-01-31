@@ -594,6 +594,12 @@ ggplot(danej, aes(x = Obszar_zamieszkania, y = Wysokosc_kredytu, color = Histori
   ggtitle("Historia kredytowa a obszar zamieszkania i wysokość kredytu")
   
 ```
+Z analizy powyższych wykresów możemy wyciągnąć następujące wnioski:
+*Znaczna większość osób uzyskuje akcepację wniosku o kredyt
+*Większość osób wnioskujących o kredyt, to osoby bezdzietne
+*O kredyt wnioskuje 3 razy więcej mężczyzn niż kobiet
+*Większość osób wnioskujących o kredyt ukończyła studia
+
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 library(tidyverse)
@@ -694,7 +700,6 @@ wyniki_testu <- data.frame(
 
 ```
 
-
 ```{r include=FALSE}
 library(grid)
 library(gridExtra)
@@ -711,7 +716,6 @@ grid.arrange(textGrob("Wyniki testu Shapiro-Wilka",
                       heights = unit(c(1, 2), "cm")
 )
 ```
-
 
 Zaprezentowany histogram oraz test normalności rozkładu Shapiro-Wilka pozwalają stwierdzić, że zmienna zależna nie ma rozkładu normalnego. W związku z tym dalsze wnioskowanie statystyczne należy przeprowadzić w oparciu o *testy nieparametryczne*.
 
@@ -751,8 +755,6 @@ anova_table_kable
 
 ```
 
-
-
 Przeprowadzone testy statystyczne pozwalają na porównanie różnic między grupami. *Test U Manna-Whitneya* jako test nieparametryczny używany jest do porównywania dwóch niezależnych grup w celu sprawdzenia, czy pochodzą one z tej samej populacji. Został wykorzystany, ponieważ analizowane dane nie spełniają założeń dotyczących normalności rozkładu. Statystyka testu U wynosi 671, co oznacza, że rozkłady obu badanych grup są do siebie bardzo podobne.
 
 *Test ANOVA* sprawdza, czy istnieją istotne różnice między więcej niż dwoma grupami.
@@ -771,7 +773,6 @@ logit1 <- glm(Historia_kredytowa ~ Dochod_aplikanta, data = danej, family = bino
 summary(logit1)$coefficients
 ```
 
-
 **Pierwszy model** logitowy pokazuje, że tylko jedna cecha ma istotny wpływ na zmienną zależną. W związku z czym zbudowano **drugi model**, który przedstawia tylko zależność między **historią kredytową** a **dochodem aplikanta**. Również analiza wartości **AIC** pokazuje, że drugi model jest lepiej dopasowany.
 
 ```{r include=FALSE}
@@ -789,4 +790,4 @@ W następnym etapie przeprowadzono imputację braków danych, wykorzystując met
 
 Analiza odstających obserwacji obejmowała zarówno podejście jednowymiarowe, z użyciem wykresów pudełkowych, jak i wielowymiarowe, przy użyciu wykresów rozrzutu (scatterplot). Pozwoliło to na identyfikację relacji między zmiennymi. Wykorzystano również metodę kwantylową oraz odchylenia Cooka, co dostarczyło dodatkowych informacji na temat struktury danych i umożliwiło identyfikację obserwacji wpływających na modele.
 
-Końcowym etapem była wizualizacja danych i wnioskowanie statystyczne, które pozwoliły na identyfikację kluczowych wzorców i zależności między zmiennymi...
+Końcowym etapem była wizualizacja danych i wnioskowanie statystyczne, które pozwoliły na identyfikację kluczowych wzorców i zależności między zmiennymi. Wskazały, że najistotniejszym czynnikiem kształtującym zmienną Historia kredytowa. Inne zmienne nie mają tak istotnego wpływu na odrzucenie lub przyjęcie wniosku o przyznanie kredytu.
