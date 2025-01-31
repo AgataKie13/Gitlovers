@@ -594,11 +594,16 @@ ggplot(danej, aes(x = Obszar_zamieszkania, y = Wysokosc_kredytu, color = Histori
   ggtitle("Historia kredytowa a obszar zamieszkania i wysokość kredytu")
   
 ```
+
+
 Z analizy powyższych wykresów możemy wyciągnąć następujące wnioski:
 *Znaczna większość osób uzyskuje akcepację wniosku o kredyt
 *Większość osób wnioskujących o kredyt, to osoby bezdzietne
 *O kredyt wnioskuje 3 razy więcej mężczyzn niż kobiet
 *Większość osób wnioskujących o kredyt ukończyła studia
+
+
+
 
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
