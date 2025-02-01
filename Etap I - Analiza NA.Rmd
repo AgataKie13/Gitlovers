@@ -1,10 +1,13 @@
 ---
-title: "Projekt Analiza Danych"
-author: "A. Kierznikowicz, J. Dobosz, P. Cebulska"
-date: "2024-11-20"
+title: "Projekt - Analiza Danych"
+date: "`r Sys.Date()`"
+author: A. Kierznikowicz, J. Dobosz, P. Cebulska
 output:
-  html_document: default
-  pdf_document: default
+  rmdformats::readthedown:
+    number_sections: true
+    lightbox: true
+    toc_depth: 3
+    highlight: "tango"
 ---
 
 ```{r setup, include=FALSE}
@@ -40,8 +43,8 @@ Firma chce zautomatyzować proces przyznawania pożyczki (w czasie rzeczywistym)
 
 ### **Pakiety wykorzystane w projekcie:**
 
-install.packages("rstatix") install.packages("ggcorrplot") install.packages("finalfit") install.packages("naniar") install.packages("VIM") install.packages("finalfit")\
-install.packages("validate") install.packages("plotly") install.packages("webr") install.packages("gtsummary") install.packages("ggstatsplot") install.packages("ggplot2") install.packages("kableExtra")
+install.packages("rstatix") install.packages("ggcorrplot") install.packages("finalfit") install.packages("naniar") install.packages("VIM") install.packages("finalfit")
+install.packages("validate") install.packages("plotly") install.packages("webr") install.packages("gtsummary") install.packages("ggstatsplot") install.packages("ggplot2") install.packages("kableExtra") install.packages("rmdformats") install.packages("prettydoc")
 
 ### 1. Wczytanie danych
 
@@ -595,16 +598,7 @@ ggplot(danej, aes(x = Obszar_zamieszkania, y = Wysokosc_kredytu, color = Histori
   
 ```
 
-
-Z analizy powyższych wykresów możemy wyciągnąć następujące wnioski:
-*Znaczna większość osób uzyskuje akcepację wniosku o kredyt
-*Większość osób wnioskujących o kredyt, to osoby bezdzietne
-*O kredyt wnioskuje 3 razy więcej mężczyzn niż kobiet
-*Większość osób wnioskujących o kredyt ukończyła studia
-
-
-
-
+Z analizy powyższych wykresów możemy wyciągnąć następujące wnioski: *Znaczna większość osób uzyskuje akcepację wniosku o kredyt* Większość osób wnioskujących o kredyt, to osoby bezdzietne *O kredyt wnioskuje 3 razy więcej mężczyzn niż kobiet* Większość osób wnioskujących o kredyt ukończyła studia
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 library(tidyverse)
@@ -796,5 +790,3 @@ W następnym etapie przeprowadzono imputację braków danych, wykorzystując met
 Analiza odstających obserwacji obejmowała zarówno podejście jednowymiarowe, z użyciem wykresów pudełkowych, jak i wielowymiarowe, przy użyciu wykresów rozrzutu (scatterplot). Pozwoliło to na identyfikację relacji między zmiennymi. Wykorzystano również metodę kwantylową oraz odchylenia Cooka, co dostarczyło dodatkowych informacji na temat struktury danych i umożliwiło identyfikację obserwacji wpływających na modele.
 
 Końcowym etapem była wizualizacja danych i wnioskowanie statystyczne, które pozwoliły na identyfikację kluczowych wzorców i zależności między zmiennymi. Wskazały, że najistotniejszym czynnikiem kształtującym zmienną historia kredytowa jest dochód aplikanta. Inne zmienne nie mają tak istotnego wpływu na odrzucenie lub przyjęcie wniosku o przyznanie kredytu.
-
-
